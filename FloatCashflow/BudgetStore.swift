@@ -1,4 +1,5 @@
 import Foundation
+import WidgetKit
 
 @MainActor
 final class BudgetStore: ObservableObject {
@@ -527,6 +528,8 @@ final class BudgetStore: ObservableObject {
 
     private func save() {
         applyDueReserveTransfers()
+        FloatWidgetSnapshot.make(from: budget).save()
+        WidgetCenter.shared.reloadAllTimelines()
         guard let data = try? JSONEncoder().encode(budget) else { return }
         try? data.write(to: storageURL, options: [.atomic])
     }
