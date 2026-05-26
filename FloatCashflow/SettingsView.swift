@@ -1338,15 +1338,11 @@ struct PasscodeManagementView: View {
         } keypad: {
             NativePasscodeKeypad(
                 leftTitle: "Cancel",
-                rightTitle: activePasscode.isEmpty ? "" : activePasscode.count >= 4 ? "OK" : "Delete",
+                rightTitle: activePasscode.isEmpty ? "" : "Delete",
                 onDigit: appendDigit,
                 onLeft: { dismiss() },
                 onRight: {
-                    if activePasscode.count >= 4 {
-                        confirm()
-                    } else {
-                        deleteDigit()
-                    }
+                    deleteDigit()
                 },
                 onDelete: deleteDigit
             )
@@ -1384,7 +1380,7 @@ struct PasscodeManagementView: View {
         case .current:
             return " "
         case .new:
-            return "Use 4 to 6 digits."
+            return "Use 4 digits."
         case .confirm:
             return "Enter the same passcode again."
         }
@@ -1430,8 +1426,9 @@ struct PasscodeManagementView: View {
     }
 
     private func confirmNewPasscode() {
-        guard (4...6).contains(newPasscode.count) else {
-            errorText = "Use 4 to 6 digits."
+        guard newPasscode.count == 4 else {
+            errorText = "Use 4 digits."
+            newPasscode = ""
             return
         }
 
@@ -1455,21 +1452,21 @@ struct PasscodeManagementView: View {
         errorText = nil
         switch activeField {
         case .current:
-            guard currentPasscode.count < 6 else { return }
+            guard currentPasscode.count < 4 else { return }
             currentPasscode.append(digit)
-            if currentPasscode.count == 6 {
+            if currentPasscode.count == 4 {
                 confirmCurrentPasscode()
             }
         case .new:
-            guard newPasscode.count < 6 else { return }
+            guard newPasscode.count < 4 else { return }
             newPasscode.append(digit)
-            if newPasscode.count == 6 {
+            if newPasscode.count == 4 {
                 confirmNewPasscode()
             }
         case .confirm:
-            guard confirmPasscode.count < 6 else { return }
+            guard confirmPasscode.count < 4 else { return }
             confirmPasscode.append(digit)
-            if confirmPasscode.count == 6 {
+            if confirmPasscode.count == 4 {
                 confirmRepeatedPasscode()
             }
         }

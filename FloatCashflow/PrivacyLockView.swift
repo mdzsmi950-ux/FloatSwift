@@ -31,17 +31,13 @@ struct PrivacyLockView: View {
         } keypad: {
             NativePasscodeKeypad(
                 leftTitle: privacyLock.faceIDAvailable ? "Face ID" : "",
-                rightTitle: passcode.isEmpty ? "" : passcode.count >= 4 ? "OK" : "Delete",
+                rightTitle: passcode.isEmpty ? "" : "Delete",
                 onDigit: appendDigit,
                 onLeft: {
                     Task { await unlockWithFaceID() }
                 },
                 onRight: {
-                    if passcode.count >= 4 {
-                        unlockWithPasscode()
-                    } else {
-                        deleteDigit()
-                    }
+                    deleteDigit()
                 },
                 onDelete: deleteDigit
             )
@@ -59,8 +55,9 @@ struct PrivacyLockView: View {
     }
 
     private func unlockWithPasscode() {
-        guard passcode.count >= 4 else {
-            errorText = "Enter your 4 to 6 digit passcode."
+        guard passcode.count == 4 else {
+            errorText = "Enter your 4 digit passcode."
+            passcode = ""
             return
         }
 
@@ -69,14 +66,15 @@ struct PrivacyLockView: View {
             passcode = ""
         } else {
             errorText = "Incorrect passcode."
+            passcode = ""
         }
     }
 
     private func appendDigit(_ digit: String) {
-        guard passcode.count < 6 else { return }
+        guard passcode.count < 4 else { return }
         passcode.append(digit)
         errorText = nil
-        if passcode.count == 6 {
+        if passcode.count == 4 {
             unlockWithPasscode()
         }
     }
@@ -93,7 +91,7 @@ struct PasscodeDots: View {
 
     var body: some View {
         HStack(spacing: 18) {
-            ForEach(0..<6, id: \.self) { index in
+            ForEach(0..<4, id: \.self) { index in
                 Circle()
                     .fill(index < count ? Color.floatText : .clear)
                     .overlay(
