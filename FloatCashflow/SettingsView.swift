@@ -292,12 +292,28 @@ struct SettingsView: View {
     @ViewBuilder
     private var setupGuide: some View {
         if let setupStep {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Quick Setup")
-                    .font(.system(size: 12, weight: .semibold))
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("First Setup")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.floatText)
+                            .tracking(0.8)
+                            .textCase(.uppercase)
+
+                        Text("Step \(setupStep.number) of \(SetupStep.totalSteps)")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.floatTextFaint)
+                    }
+
+                    Spacer()
+
+                    setupProgress(for: setupStep)
+                }
+
+                Text(setupStep.title)
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(Color.floatText)
-                    .tracking(0.8)
-                    .textCase(.uppercase)
 
                 Text(setupStep.message)
                     .font(.system(size: 13))
@@ -307,7 +323,23 @@ struct SettingsView: View {
                 setupGuideActions(for: setupStep)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 12)
+            .padding(14)
+            .background(.white.opacity(0.42))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(.black.opacity(0.045), lineWidth: 0.5)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+        }
+    }
+
+    private func setupProgress(for step: SetupStep) -> some View {
+        HStack(spacing: 5) {
+            ForEach(1...SetupStep.totalSteps, id: \.self) { number in
+                Capsule()
+                    .fill(number <= step.number ? Color.floatText : Color.floatTextFaint.opacity(0.22))
+                    .frame(width: number == step.number ? 18 : 6, height: 6)
+            }
         }
     }
 
@@ -1242,16 +1274,46 @@ private enum SetupStep {
     case obligation
     case overview
 
+    static let totalSteps = 4
+
+    var number: Int {
+        switch self {
+        case .account, .balance:
+            return 1
+        case .income:
+            return 2
+        case .obligation:
+            return 3
+        case .overview:
+            return 4
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .account:
+            return "Name the account you use most"
+        case .balance:
+            return "Confirm your cash balance"
+        case .income:
+            return "Add your next income"
+        case .obligation:
+            return "Add a bill, card, or debt"
+        case .overview:
+            return "Check your first timeline"
+        }
+    }
+
     var message: String {
         switch self {
         case .account:
-            return "Start with the account you actually use to pay bills. Edit the account, then enter its cash balance so Float has a real starting point."
+            return "Start with the account you actually use to pay bills. You can keep the default name or edit it now."
         case .balance:
-            return "Confirm the cash balance you use for bills. This gives Float the starting number for your timeline."
+            return "Enter the money available for bills and regular payments. Leave out savings and emergency reserves."
         case .income:
-            return "Next, add your paycheck or other regular income. This gives Float the rhythm of when money comes in."
+            return "Add your paycheck or other regular income. This gives Float the rhythm of when money comes in."
         case .obligation:
-            return "Now add your first bill, card payment, or debt. This is where Float starts showing the pressure between paychecks."
+            return "Add one payment that pulls money out. A fixed bill, card payment, or debt is enough to make the timeline useful."
         case .overview:
             return "Your first timeline is ready. Go back to Overview to see whether this account is floating or sinking."
         }
