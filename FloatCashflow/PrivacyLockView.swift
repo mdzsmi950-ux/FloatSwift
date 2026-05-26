@@ -7,77 +7,44 @@ struct PrivacyLockView: View {
     @State private var attemptedFaceID = false
 
     var body: some View {
-        ZStack {
-            LinearGradient(
-                colors: [Color.floatSubtle, .white],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
+        NativePasscodeScaffold {
+            VStack(spacing: 14) {
+                Image(systemName: privacyLock.faceIDAvailable ? "faceid" : "lock.fill")
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundStyle(Color.floatTextMid)
+                    .frame(height: 34)
 
-            VStack(spacing: 22) {
-                Spacer()
+                Text(privacyLock.faceIDAvailable ? "Swipe up for Face ID or\nEnter Passcode" : "Enter Passcode")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(Color.floatText)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
 
-                VStack(spacing: 10) {
-                    Image(systemName: privacyLock.faceIDAvailable ? "faceid" : "lock.fill")
-                        .font(.system(size: 34, weight: .semibold))
-                        .foregroundStyle(Color.floatTextMid)
-                        .frame(width: 62, height: 62)
-                        .background(.white.opacity(0.7))
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(.black.opacity(0.08), lineWidth: 0.5)
-                        )
+                PasscodeDots(count: passcode.count, hasError: errorText != nil)
 
-                    Text("Unlock Float")
-                        .font(.system(size: 22, weight: .bold))
-                        .foregroundStyle(Color.floatText)
-
-                    Text(privacyLock.faceIDAvailable ? "Use Face ID or enter your Float passcode." : "Enter your Float passcode.")
-                        .font(.system(size: 13))
-                        .foregroundStyle(Color.floatTextFaint)
-                        .multilineTextAlignment(.center)
-                }
-
-                VStack(spacing: 14) {
-                    PasscodeDots(count: passcode.count, hasError: errorText != nil)
-                    .onChange(of: passcode) {
-                        if passcode.count >= 4 {
-                            errorText = nil
-                        }
-                    }
-
-                    if let errorText {
-                        Text(errorText)
-                            .font(.system(size: 12))
-                            .foregroundStyle(Color.floatWarning)
-                            .frame(maxWidth: .infinity)
-                    }
-
-                    PasscodeKeypad(
-                        onDigit: appendDigit,
-                        onDelete: deleteDigit,
-                        onConfirm: unlockWithPasscode
-                    )
-
-                    if privacyLock.faceIDAvailable {
-                        Button {
-                            Task { await unlockWithFaceID() }
-                        } label: {
-                            Label("Use Face ID", systemImage: "faceid")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color.floatTextMid)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.top, 2)
-                    }
-                }
-                .frame(maxWidth: 320)
-
-                Spacer()
+                Text(errorText ?? " ")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Color.floatWarning)
+                    .frame(height: 16)
             }
-            .padding(.horizontal, 28)
+            .padding(.top, 30)
+        } keypad: {
+            NativePasscodeKeypad(
+                leftTitle: privacyLock.faceIDAvailable ? "Face ID" : "",
+                rightTitle: passcode.isEmpty ? "" : passcode.count >= 4 ? "OK" : "Delete",
+                onDigit: appendDigit,
+                onLeft: {
+                    Task { await unlockWithFaceID() }
+                },
+                onRight: {
+                    if passcode.count >= 4 {
+                        unlockWithPasscode()
+                    } else {
+                        deleteDigit()
+                    }
+                },
+                onDelete: deleteDigit
+            )
         }
         .task {
             guard !attemptedFaceID else { return }
@@ -108,6 +75,10 @@ struct PrivacyLockView: View {
     private func appendDigit(_ digit: String) {
         guard passcode.count < 6 else { return }
         passcode.append(digit)
+        errorText = nil
+        if passcode.count == 6 {
+            unlockWithPasscode()
+        }
     }
 
     private func deleteDigit() {
@@ -121,15 +92,15 @@ struct PasscodeDots: View {
     var hasError: Bool = false
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 18) {
             ForEach(0..<6, id: \.self) { index in
                 Circle()
-                    .fill(index < count ? Color.floatText : Color.floatTextFaint.opacity(0.18))
+                    .fill(index < count ? Color.floatText : .clear)
                     .overlay(
                         Circle()
-                            .stroke(hasError ? Color.floatWarning.opacity(0.8) : Color.floatTextFaint.opacity(0.22), lineWidth: hasError ? 1 : 0.5)
+                            .stroke(hasError ? Color.floatWarning.opacity(0.85) : Color.floatText.opacity(0.32), lineWidth: hasError ? 1.4 : 1.2)
                     )
-                    .frame(width: 12, height: 12)
+                    .frame(width: 11, height: 11)
             }
         }
         .frame(maxWidth: .infinity)
@@ -137,60 +108,70 @@ struct PasscodeDots: View {
     }
 }
 
-struct PasscodeInputRow: View {
-    var title: String
-    var count: Int
-    var isActive: Bool
-    var hasError: Bool
-    var action: () -> Void
+struct NativePasscodeScaffold<Prompt: View, Keypad: View>: View {
+    @ViewBuilder var prompt: () -> Prompt
+    @ViewBuilder var keypad: () -> Keypad
 
     var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 7) {
-                Text(title)
-                    .font(.system(size: 12))
-                    .foregroundStyle(isActive ? Color.floatText : Color.floatTextMid)
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(hex: "E9EEF2"),
+                    Color(hex: "D7E2E0"),
+                    Color(hex: "EFF0ED")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-                HStack {
-                    PasscodeDots(count: count, hasError: hasError)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, 12)
-                .frame(height: 42)
-                .background(.white.opacity(isActive ? 0.9 : 0.58))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 13)
-                        .stroke(isActive ? Color.floatText.opacity(0.2) : Color.floatBorder, lineWidth: isActive ? 1 : 0.5)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 13))
+            Color.white.opacity(0.18)
+                .ignoresSafeArea()
+
+            VStack(spacing: 26) {
+                Spacer(minLength: 42)
+                prompt()
+                Spacer(minLength: 8)
+                keypad()
+                    .padding(.bottom, 22)
             }
-            .contentShape(Rectangle())
+            .padding(.horizontal, 28)
         }
-        .buttonStyle(.plain)
     }
 }
 
-struct PasscodeKeypad: View {
+struct NativePasscodeKeypad: View {
+    var leftTitle: String
+    var rightTitle: String
     var onDigit: (String) -> Void
+    var onLeft: () -> Void
+    var onRight: () -> Void
     var onDelete: () -> Void
-    var onConfirm: () -> Void
 
     private let rows = [
         ["1", "2", "3"],
         ["4", "5", "6"],
         ["7", "8", "9"],
-        ["delete", "0", "confirm"]
+        ["blank-left", "0", "blank-right"]
     ]
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 14) {
             ForEach(rows, id: \.self) { row in
-                HStack(spacing: 18) {
+                HStack(spacing: 20) {
                     ForEach(row, id: \.self) { key in
                         keyButton(key)
                     }
                 }
             }
+
+            HStack {
+                footerButton(leftTitle, action: onLeft)
+                Spacer()
+                footerButton(rightTitle, action: onRight)
+            }
+            .frame(width: 292)
+            .padding(.top, 4)
         }
     }
 
@@ -198,44 +179,71 @@ struct PasscodeKeypad: View {
     private func keyButton(_ key: String) -> some View {
         Button {
             switch key {
-            case "delete":
-                onDelete()
-            case "confirm":
-                onConfirm()
+            case "blank-left", "blank-right":
+                break
             default:
                 onDigit(key)
             }
         } label: {
             Group {
                 switch key {
-                case "delete":
-                    Image(systemName: "delete.left")
-                        .font(.system(size: 17, weight: .medium))
-                case "confirm":
-                    Text("OK")
-                        .font(.system(size: 14, weight: .semibold))
+                case "blank-left", "blank-right":
+                    Color.clear
                 default:
-                    Text(key)
-                        .font(.system(size: 25, weight: .medium))
+                    VStack(spacing: 0) {
+                        Text(key)
+                            .font(.system(size: 34, weight: .regular))
+                        Text(letters(for: key))
+                            .font(.system(size: 9, weight: .bold))
+                            .tracking(1.5)
+                            .opacity(letters(for: key).isEmpty ? 0 : 0.85)
+                    }
                 }
             }
-            .foregroundStyle(Color.floatText)
-            .frame(width: 64, height: 48)
-            .background(key == "delete" || key == "confirm" ? Color.clear : .white.opacity(0.68))
-            .clipShape(Capsule())
+            .foregroundStyle(Color.floatText.opacity(key.hasPrefix("blank") ? 0 : 0.92))
+            .frame(width: 78, height: 78)
+            .background(key.hasPrefix("blank") ? Color.clear : .white.opacity(0.28))
+            .clipShape(Circle())
             .overlay(
-                Capsule()
-                    .stroke(key == "delete" || key == "confirm" ? .clear : .black.opacity(0.06), lineWidth: 0.5)
+                Circle()
+                    .stroke(key.hasPrefix("blank") ? .clear : .white.opacity(0.28), lineWidth: 0.8)
             )
         }
         .buttonStyle(.plain)
+        .disabled(key.hasPrefix("blank"))
         .accessibilityLabel(accessibilityLabel(for: key))
+    }
+
+    @ViewBuilder
+    private func footerButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.floatText.opacity(title.isEmpty ? 0 : 0.88))
+                .frame(width: 96, height: 36)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(title.isEmpty)
+    }
+
+    private func letters(for key: String) -> String {
+        switch key {
+        case "2": "ABC"
+        case "3": "DEF"
+        case "4": "GHI"
+        case "5": "JKL"
+        case "6": "MNO"
+        case "7": "PQRS"
+        case "8": "TUV"
+        case "9": "WXYZ"
+        default: ""
+        }
     }
 
     private func accessibilityLabel(for key: String) -> String {
         switch key {
-        case "delete": "Delete"
-        case "confirm": "OK"
+        case "blank-left", "blank-right": ""
         default: key
         }
     }

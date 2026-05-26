@@ -264,10 +264,8 @@ struct SettingsView: View {
         .sheet(isPresented: $showDebtPayoff) {
             DebtPayoffView(store: debtPayoffStore)
         }
-        .sheet(item: $passcodeFlow) { flow in
+        .fullScreenCover(item: $passcodeFlow) { flow in
             PasscodeManagementView(mode: flow, privacyLock: privacyLock)
-                .presentationDetents([.fraction(0.74), .large])
-                .presentationDragIndicator(.visible)
         }
     }
 
@@ -1321,62 +1319,37 @@ struct PasscodeManagementView: View {
     @State private var activeField: PasscodeEntryField = .new
 
     var body: some View {
-        EditorShell(accountColor: "EEE9E7", title: title) {
-            VStack(alignment: .leading, spacing: 10) {
-                if needsCurrentPasscode {
-                    PasscodeInputRow(
-                        title: "Current passcode",
-                        count: currentPasscode.count,
-                        isActive: activeField == .current,
-                        hasError: errorText != nil
-                    ) {
-                        activeField = .current
-                    }
-                }
+        NativePasscodeScaffold {
+            VStack(spacing: 14) {
+                Text(promptTitle)
+                    .font(.system(size: 21, weight: .semibold))
+                    .foregroundStyle(Color.floatText)
+                    .multilineTextAlignment(.center)
 
-                if mode != .disable {
-                    PasscodeInputRow(
-                        title: "New passcode",
-                        count: newPasscode.count,
-                        isActive: activeField == .new,
-                        hasError: errorText != nil
-                    ) {
-                        activeField = .new
-                    }
+                PasscodeDots(count: activePasscode.count, hasError: errorText != nil)
 
-                    PasscodeInputRow(
-                        title: "Enter new passcode again",
-                        count: confirmPasscode.count,
-                        isActive: activeField == .confirm,
-                        hasError: errorText != nil
-                    ) {
-                        activeField = .confirm
-                    }
-                }
-
-                if let errorText {
-                    Text(errorText)
-                        .font(.system(size: 12))
-                        .foregroundStyle(Color.floatWarning)
-                }
-
-                PasscodeKeypad(
-                    onDigit: appendDigit,
-                    onDelete: deleteDigit,
-                    onConfirm: confirm
-                )
-                .padding(.vertical, 2)
-
-                HStack(spacing: 10) {
-                    SheetActionButton(title: "Cancel", fill: .secondary) {
-                        dismiss()
-                    }
-
-                    SheetActionButton(title: confirmTitle, fill: .primary) {
-                        confirm()
-                    }
-                }
+                Text(errorText ?? promptHint)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(errorText == nil ? Color.floatTextMid : Color.floatWarning)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 18)
             }
+            .padding(.top, 42)
+        } keypad: {
+            NativePasscodeKeypad(
+                leftTitle: "Cancel",
+                rightTitle: activePasscode.isEmpty ? "" : activePasscode.count >= 4 ? "OK" : "Delete",
+                onDigit: appendDigit,
+                onLeft: { dismiss() },
+                onRight: {
+                    if activePasscode.count >= 4 {
+                        confirm()
+                    } else {
+                        deleteDigit()
+                    }
+                },
+                onDelete: deleteDigit
+            )
         }
         .onAppear {
             activeField = needsCurrentPasscode ? .current : .new
@@ -1391,22 +1364,58 @@ struct PasscodeManagementView: View {
         }
     }
 
-    private var confirmTitle: String {
-        switch mode {
-        case .setup: "Set"
-        case .change: "Save"
-        case .disable: "Turn Off"
-        }
-    }
-
     private var needsCurrentPasscode: Bool {
         mode == .change || mode == .disable
     }
 
+    private var promptTitle: String {
+        switch activeField {
+        case .current:
+            return mode == .disable ? "Enter Passcode\nto Turn Off App Lock" : "Enter Old Passcode"
+        case .new:
+            return "Enter New Passcode"
+        case .confirm:
+            return "Verify New Passcode"
+        }
+    }
+
+    private var promptHint: String {
+        switch activeField {
+        case .current:
+            return " "
+        case .new:
+            return "Use 4 to 6 digits."
+        case .confirm:
+            return "Enter the same passcode again."
+        }
+    }
+
+    private var activePasscode: String {
+        switch activeField {
+        case .current:
+            return currentPasscode
+        case .new:
+            return newPasscode
+        case .confirm:
+            return confirmPasscode
+        }
+    }
+
     private func confirm() {
-        if needsCurrentPasscode, !privacyLock.validatePasscode(currentPasscode) {
+        switch activeField {
+        case .current:
+            confirmCurrentPasscode()
+        case .new:
+            confirmNewPasscode()
+        case .confirm:
+            confirmRepeatedPasscode()
+        }
+    }
+
+    private func confirmCurrentPasscode() {
+        guard privacyLock.validatePasscode(currentPasscode) else {
             errorText = "Current passcode is incorrect."
-            activeField = .current
+            currentPasscode = ""
             return
         }
 
@@ -1416,15 +1425,24 @@ struct PasscodeManagementView: View {
             return
         }
 
+        errorText = nil
+        activeField = .new
+    }
+
+    private func confirmNewPasscode() {
         guard (4...6).contains(newPasscode.count) else {
             errorText = "Use 4 to 6 digits."
-            activeField = .new
             return
         }
 
+        errorText = nil
+        activeField = .confirm
+    }
+
+    private func confirmRepeatedPasscode() {
         guard newPasscode == confirmPasscode else {
             errorText = "New passcodes do not match."
-            activeField = .confirm
+            confirmPasscode = ""
             return
         }
 
@@ -1439,12 +1457,21 @@ struct PasscodeManagementView: View {
         case .current:
             guard currentPasscode.count < 6 else { return }
             currentPasscode.append(digit)
+            if currentPasscode.count == 6 {
+                confirmCurrentPasscode()
+            }
         case .new:
             guard newPasscode.count < 6 else { return }
             newPasscode.append(digit)
+            if newPasscode.count == 6 {
+                confirmNewPasscode()
+            }
         case .confirm:
             guard confirmPasscode.count < 6 else { return }
             confirmPasscode.append(digit)
+            if confirmPasscode.count == 6 {
+                confirmRepeatedPasscode()
+            }
         }
     }
 
