@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import UIKit
 
 extension Date {
     static let yyyyMMdd: DateFormatter = {
@@ -97,7 +98,7 @@ struct FloatTextField: View {
             .foregroundStyle(Color.floatText)
             .tint(Color.floatText)
             .padding(.horizontal, 12)
-            .frame(height: 40)
+            .frame(height: 34)
             .background(.white)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -117,7 +118,7 @@ struct FloatButton: View {
             .font(.system(size: 13))
             .foregroundStyle(Color.floatText)
             .padding(.horizontal, 12)
-            .frame(height: 42)
+            .frame(height: 34)
             .background(Color.floatSubtle)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)

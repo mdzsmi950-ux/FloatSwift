@@ -3,6 +3,8 @@ import SwiftUI
 struct OverviewView: View {
     @EnvironmentObject private var store: BudgetStore
     var startOwnBudget: () -> Void
+    @State private var measuredDateColumnWidth: CGFloat = 0
+    @State private var measuredAmountColumnWidth: CGFloat = 0
 
     private var account: FloatAccount {
         store.activeAccount
@@ -20,8 +22,13 @@ struct OverviewView: View {
         BudgetMath.reservePercent(account)
     }
 
-    private let dateColumnWidth: CGFloat = 48
-    private let amountColumnWidth: CGFloat = 116
+    private var dateColumnWidth: CGFloat {
+        max(34, measuredDateColumnWidth)
+    }
+
+    private var amountColumnWidth: CGFloat {
+        max(72, measuredAmountColumnWidth)
+    }
 
     var body: some View {
         GeometryReader { proxy in
@@ -34,11 +41,17 @@ struct OverviewView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 24)
-                .padding(.bottom, 96)
+                .padding(.bottom, 146)
                 .frame(minHeight: proxy.size.height + 1, alignment: .top)
             }
             .scrollIndicators(.hidden)
             .scrollBounceBehavior(.always, axes: .vertical)
+            .onPreferenceChange(DateColumnWidthPreferenceKey.self) { width in
+                measuredDateColumnWidth = ceil(width)
+            }
+            .onPreferenceChange(AmountColumnWidthPreferenceKey.self) { width in
+                measuredAmountColumnWidth = ceil(width)
+            }
         }
     }
 
@@ -70,21 +83,6 @@ struct OverviewView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 10))
             }
 
-            Button {
-                cycleAccount()
-            } label: {
-                HStack(spacing: 6) {
-                    Text(account.name)
-                    if store.budget.accounts.count > 1 {
-                        Image(systemName: "arrow.triangle.2.circlepath")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(Color.floatText.opacity(0.55))
-                    }
-                }
-            }
-            .buttonStyle(.plain)
-            .font(.system(size: 14, weight: .semibold))
-            .foregroundStyle(Color.floatText)
         }
     }
 
@@ -161,6 +159,8 @@ struct OverviewView: View {
                             Text(balanceText(group.balance))
                                 .font(.system(size: 13, weight: .semibold))
                                 .foregroundStyle(group.balance >= 0 ? Color.floatAccent : Color.floatDanger)
+                                .fixedSize()
+                                .measureColumnWidth(AmountColumnWidthPreferenceKey.self)
                                 .frame(width: amountColumnWidth, alignment: .trailing)
                         }
                         .padding(.top, group.bills.isEmpty ? 2 : 3)
@@ -205,9 +205,13 @@ struct OverviewView: View {
                     .gridCellColumns(1)
 
                 date()
+                    .fixedSize()
+                    .measureColumnWidth(DateColumnWidthPreferenceKey.self)
                     .frame(width: dateColumnWidth, alignment: .leading)
 
                 amount()
+                    .fixedSize()
+                    .measureColumnWidth(AmountColumnWidthPreferenceKey.self)
                     .frame(width: amountColumnWidth, alignment: .trailing)
             }
         }
@@ -234,13 +238,6 @@ struct OverviewView: View {
 
     private func balanceText(_ amount: Double) -> String {
         amount < 0 ? "-\(money(abs(amount)))" : money(amount)
-    }
-
-    private func cycleAccount() {
-        guard store.budget.accounts.count > 1,
-              let index = store.budget.accounts.firstIndex(where: { $0.id == account.id }) else { return }
-        let next = store.budget.accounts[(index + 1) % store.budget.accounts.count]
-        store.setActiveAccount(next.id)
     }
 
     private func longDate(_ value: String) -> String {
@@ -280,5 +277,39 @@ struct OverviewView: View {
         }
 
         return [startingGroup] + incomeGroups
+    }
+}
+
+private struct DateColumnWidthPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private struct AmountColumnWidthPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private struct ColumnWidthReader<Key: PreferenceKey>: ViewModifier where Key.Value == CGFloat {
+    let key: Key.Type
+
+    func body(content: Content) -> some View {
+        content.background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: key, value: proxy.size.width)
+            }
+        }
+    }
+}
+
+private extension View {
+    func measureColumnWidth<Key: PreferenceKey>(_ key: Key.Type) -> some View where Key.Value == CGFloat {
+        modifier(ColumnWidthReader(key: key))
     }
 }

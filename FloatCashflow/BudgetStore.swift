@@ -101,6 +101,16 @@ final class BudgetStore: ObservableObject {
         save()
     }
 
+    func updateAccount(id: String, name: String, cashBalance: Double) {
+        guard let index = budget.accounts.firstIndex(where: { $0.id == id }) else { return }
+        budget.accounts[index].name = name
+        budget.accounts[index].currentBalance = cashBalance
+        budget.accounts[index].lastConfirmedDate = Date.todayString
+        budget.accounts[index].balanceIsConfirmed = true
+        budget.accounts[index].income.removeAll { $0.label == "Confirmed balance" }
+        save()
+    }
+
     func deleteAccount(id: String) {
         guard budget.accounts.count > 1 else { return }
 
@@ -168,6 +178,54 @@ final class BudgetStore: ObservableObject {
                 linkedTransferId: transferId
             ))
         }
+
+        save()
+    }
+
+    func addDebt(
+        name: String,
+        startingBalance: Double,
+        currentPrincipal: Double,
+        accruedInterest: Double,
+        balanceDate: Date,
+        interestRateAPR: Double,
+        minimumPayment: Double,
+        plannedMonthlyPayment: Double,
+        nextPaymentDate: Date
+    ) {
+        guard let activeIndex = activeAccountIndex else { return }
+
+        let targetName = normalizedName(name)
+        let debtDetails = BudgetDebtDetails(
+            startingBalance: startingBalance,
+            currentPrincipal: currentPrincipal,
+            accruedInterest: accruedInterest,
+            balanceDate: balanceDate.ymdString,
+            interestRateAPR: interestRateAPR,
+            minimumPayment: minimumPayment
+        )
+
+        if let matchingBillIndex = budget.accounts[activeIndex].bills.firstIndex(where: { normalizedName($0.name) == targetName }) {
+            budget.accounts[activeIndex].bills[matchingBillIndex].name = name
+            budget.accounts[activeIndex].bills[matchingBillIndex].amount = plannedMonthlyPayment
+            budget.accounts[activeIndex].bills[matchingBillIndex].startDate = nextPaymentDate.ymdString
+            budget.accounts[activeIndex].bills[matchingBillIndex].frequency = .monthly
+            budget.accounts[activeIndex].bills[matchingBillIndex].debtDetails = debtDetails
+            save()
+            return
+        }
+
+        let stamp = timestamp()
+        budget.accounts[activeIndex].bills.append(BudgetBill(
+            id: "debt-\(stamp)",
+            name: name,
+            amount: plannedMonthlyPayment,
+            startDate: nextPaymentDate.ymdString,
+            frequency: .monthly,
+            active: true,
+            linkedTransferId: nil,
+            debtDetails: debtDetails
+        ))
 
         save()
     }
@@ -276,6 +334,82 @@ final class BudgetStore: ObservableObject {
         save()
     }
 
+    func updateDebt(
+        _ bill: BudgetBill,
+        name: String,
+        startingBalance: Double,
+        currentPrincipal: Double,
+        accruedInterest: Double,
+        balanceDate: Date,
+        interestRateAPR: Double,
+        minimumPayment: Double,
+        plannedMonthlyPayment: Double,
+        nextPaymentDate: Date
+    ) {
+        let targetName = normalizedName(name)
+        var updatedBill: BudgetBill?
+
+        for accountIndex in budget.accounts.indices {
+            if let billIndex = budget.accounts[accountIndex].bills.firstIndex(where: { $0.id == bill.id }) {
+                budget.accounts[accountIndex].bills[billIndex].name = name
+                budget.accounts[accountIndex].bills[billIndex].amount = plannedMonthlyPayment
+                budget.accounts[accountIndex].bills[billIndex].startDate = nextPaymentDate.ymdString
+                budget.accounts[accountIndex].bills[billIndex].frequency = .monthly
+                budget.accounts[accountIndex].bills[billIndex].debtDetails = BudgetDebtDetails(
+                    startingBalance: startingBalance,
+                    currentPrincipal: currentPrincipal,
+                    accruedInterest: accruedInterest,
+                    balanceDate: balanceDate.ymdString,
+                    interestRateAPR: interestRateAPR,
+                    minimumPayment: minimumPayment
+                )
+                updatedBill = budget.accounts[accountIndex].bills[billIndex]
+            }
+        }
+
+        if let updatedBill,
+           let activeIndex = activeAccountIndex {
+            budget.accounts[activeIndex].bills.removeAll {
+                $0.id != updatedBill.id && normalizedName($0.name) == targetName
+            }
+        }
+
+        save()
+    }
+
+    func updateDebtSnapshotFromTool(
+        matchingName: String? = nil,
+        name: String,
+        startingBalance: Double,
+        currentPrincipal: Double,
+        accruedInterest: Double,
+        balanceDate: Date,
+        interestRateAPR: Double,
+        minimumPayment: Double,
+        nextPaymentDate: Date
+    ) {
+        guard let activeIndex = activeAccountIndex else { return }
+        let targetName = normalizedName(matchingName ?? name)
+
+        guard let billIndex = budget.accounts[activeIndex].bills.firstIndex(where: {
+            $0.debtDetails != nil && normalizedName($0.name) == targetName
+        }) else {
+            return
+        }
+
+        budget.accounts[activeIndex].bills[billIndex].name = name
+        budget.accounts[activeIndex].bills[billIndex].startDate = nextPaymentDate.ymdString
+        budget.accounts[activeIndex].bills[billIndex].debtDetails = BudgetDebtDetails(
+            startingBalance: startingBalance,
+            currentPrincipal: currentPrincipal,
+            accruedInterest: accruedInterest,
+            balanceDate: balanceDate.ymdString,
+            interestRateAPR: interestRateAPR,
+            minimumPayment: minimumPayment
+        )
+        save()
+    }
+
     func deleteIncome(_ income: BudgetIncome) {
         for index in budget.accounts.indices {
             budget.accounts[index].income.removeAll { $0.id == income.id }
@@ -360,6 +494,7 @@ final class BudgetStore: ObservableObject {
 
     func startOwnBudget() {
         budget = .newUserBlank
+        defaults.set(false, forKey: AppStorageKey.firstSetupComplete)
         markRealBudget()
         save()
     }
@@ -412,6 +547,10 @@ final class BudgetStore: ObservableObject {
         String(Int(Date().timeIntervalSince1970 * 1000))
     }
 
+    private func normalizedName(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
     private func transferToAccountIndex(named billName: String) -> Int? {
         let normalized = billName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard normalized.hasPrefix("transfer to ") else { return nil }
@@ -454,4 +593,9 @@ enum AppStorageKey {
     static let lastBackupImportDate = "float:lastBackupImportDate"
     static let legacyMigrationAttempted = "float:legacyMigrationAttempted"
     static let accountPaletteId = "float:accountPaletteId"
+    static let appLockEnabled = "float:appLockEnabled"
+    static let appLockPasscodeHash = "float:appLockPasscodeHash"
+    static let appLockPasscodeSalt = "float:appLockPasscodeSalt"
+    static let settingsGuidanceVisible = "float:settingsGuidanceVisible"
+    static let firstSetupComplete = "float:firstSetupComplete"
 }

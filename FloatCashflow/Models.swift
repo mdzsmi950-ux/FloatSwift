@@ -40,6 +40,20 @@ struct BudgetBill: Codable, Identifiable, Equatable {
     var frequency: Frequency
     var active: Bool
     var linkedTransferId: String?
+    var debtDetails: BudgetDebtDetails? = nil
+}
+
+struct BudgetDebtDetails: Codable, Equatable {
+    var startingBalance: Double
+    var currentPrincipal: Double
+    var accruedInterest: Double
+    var balanceDate: String
+    var interestRateAPR: Double
+    var minimumPayment: Double
+
+    var estimatedCurrentBalance: Double {
+        currentPrincipal + accruedInterest
+    }
 }
 
 struct BudgetIncome: Codable, Identifiable, Equatable {
