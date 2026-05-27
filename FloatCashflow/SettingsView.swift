@@ -481,7 +481,7 @@ struct SettingsView: View {
                             reserveError = nil
                         }
                     }
-                    fieldError(reserveError)
+                    settingsFieldError(reserveError)
                 }
 
                 settingsControlGroup("Reserve goal") {
@@ -501,7 +501,7 @@ struct SettingsView: View {
                             reserveGoalError = nil
                         }
                     }
-                    fieldError(reserveGoalError)
+                    settingsFieldError(reserveGoalError)
                 }
             }
         }
@@ -527,7 +527,7 @@ struct SettingsView: View {
                         confirmBalanceError = nil
                     }
                 }
-                fieldError(confirmBalanceError)
+                settingsFieldError(confirmBalanceError)
             }
         }
     }
@@ -595,7 +595,7 @@ struct SettingsView: View {
     private var accountsSection: some View {
         settingsCard(title: "Accounts", section: .accounts) {
             VStack(spacing: 2) {
-                guidanceText("Add the account you use for bills and enter its cash balance. Tap a name to switch the active account.")
+                guidanceText("Add the account you use for bills and enter its cash balance. Tap a name to view and edit that account.")
                 VStack(spacing: 2) {
                     ForEach(Array(store.budget.accounts.enumerated()), id: \.element.id) { index, item in
                         accountRow(item, index: index)
@@ -609,9 +609,9 @@ struct SettingsView: View {
         }
     }
 
-	    private func accountMarkerColor(_ index: Int) -> Color {
-	        Color(hex: store.selectedPalette.marker(for: index))
-	    }
+    private func accountMarkerColor(_ index: Int) -> Color {
+        Color(hex: store.selectedPalette.marker(for: index))
+    }
 
     private func accountRow(_ item: FloatAccount, index: Int) -> some View {
         HStack(spacing: 10) {
@@ -634,7 +634,7 @@ struct SettingsView: View {
                             .lineLimit(1)
 
                         if item.id == account.id {
-                            Text("Active account")
+                            Text("Selected")
                                 .font(.system(size: 10))
                                 .foregroundStyle(Color.floatTextFaint)
                         }

@@ -44,7 +44,7 @@ struct FloatWidgetSnapshot: Codable {
     )
 
     static func make(from budget: FloatBudget) -> FloatWidgetSnapshot {
-        let account = budget.widgetAccount ?? budget.activeAccount ?? budget.accounts.first ?? FloatBudget.blank.accounts[0]
+        let account = budget.widgetAccount ?? budget.accounts.first ?? FloatBudget.blank.accounts[0]
         let events = BudgetMath.buildEvents(account: account, cutoff: BudgetMath.cutoff())
             .filter { $0.label != "Confirmed balance" }
             .sorted(by: BudgetMath.eventComesFirst)

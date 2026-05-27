@@ -94,7 +94,7 @@ struct BillEditor: View {
                     dismiss()
                 }
             }
-            fieldError(validationError)
+            settingsFieldError(validationError)
         }
         .alert("Delete \(bill?.name ?? "Bill")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
@@ -190,7 +190,7 @@ struct IncomeEditor: View {
                     dismiss()
                 }
             }
-            fieldError(validationError)
+            settingsFieldError(validationError)
         }
         .alert("Delete \(income?.label ?? "Income")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
@@ -294,7 +294,7 @@ struct DebtBillEditor: View {
                     attemptSave()
                 }
             }
-            fieldError(validationError)
+            settingsFieldError(validationError)
         }
         .interactiveDismissDisabled(snapshotHasChanges)
         .alert("Delete \(bill?.name ?? "Debt")?", isPresented: $showDeleteAlert) {
@@ -603,7 +603,7 @@ struct AccountEditor: View {
                     dismiss()
                 }
             }
-            fieldError(validationError)
+            settingsFieldError(validationError)
         }
         .alert("Delete \(account?.name ?? "Account")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
@@ -789,7 +789,7 @@ private func labeled<Content: View>(_ title: String, @ViewBuilder content: () ->
 }
 
 @ViewBuilder
-func fieldError(_ message: String?) -> some View {
+func settingsFieldError(_ message: String?) -> some View {
     if let message {
         Text(message)
             .font(.system(size: 11, weight: .medium))
