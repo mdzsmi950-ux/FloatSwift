@@ -24,12 +24,15 @@ final class DebtPayoffStore: ObservableObject {
 
     func syncFromBudget(_ budget: FloatBudget) {
         var changed = false
+        var budgetDebtIds = Set<String>()
 
         for account in budget.accounts {
             for bill in account.bills {
                 guard let details = bill.debtDetails else { continue }
+                let itemId = budgetLinkedId(for: bill.id)
+                budgetDebtIds.insert(itemId)
                 let item = DebtPayoffItem(
-                    id: "budget-\(bill.id)",
+                    id: itemId,
                     name: bill.name,
                     startingBalance: details.startingBalance,
                     currentPrincipal: details.currentPrincipal,
@@ -41,7 +44,9 @@ final class DebtPayoffStore: ObservableObject {
                     nextPaymentDate: bill.startDate
                 )
 
-                if let index = ledger.debts.firstIndex(where: { normalizedName($0.name) == normalizedName(item.name) }) {
+                if let index = ledger.debts.firstIndex(where: { $0.id == item.id }) {
+                    ledger.debts[index] = item
+                } else if let index = singleStandaloneDebtIndex(named: item.name) {
                     ledger.debts[index] = item
                 } else {
                     ledger.debts.append(item)
@@ -49,6 +54,12 @@ final class DebtPayoffStore: ObservableObject {
                 changed = true
             }
         }
+
+        let countBeforeCleanup = ledger.debts.count
+        ledger.debts.removeAll { debt in
+            isBudgetLinked(debt.id) && !budgetDebtIds.contains(debt.id)
+        }
+        changed = changed || ledger.debts.count != countBeforeCleanup
 
         if changed {
             save()
@@ -132,5 +143,22 @@ final class DebtPayoffStore: ObservableObject {
 
     private func normalizedName(_ value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private func budgetLinkedId(for billId: String) -> String {
+        "budget-\(billId)"
+    }
+
+    private func isBudgetLinked(_ debtId: String) -> Bool {
+        debtId.hasPrefix("budget-")
+    }
+
+    private func singleStandaloneDebtIndex(named name: String) -> Int? {
+        let matches = ledger.debts.indices.filter {
+            !isBudgetLinked(ledger.debts[$0].id) &&
+                normalizedName(ledger.debts[$0].name) == normalizedName(name)
+        }
+
+        return matches.count == 1 ? matches[0] : nil
     }
 }

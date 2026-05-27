@@ -84,6 +84,7 @@ struct DebtPayoffView: View {
                             nextPaymentDate: paymentDate
                         )
                         budgetStore.updateDebtSnapshotFromTool(
+                            matchingDebtId: debt.id,
                             matchingName: debt.name,
                             name: name,
                             startingBalance: starting,
@@ -95,6 +96,7 @@ struct DebtPayoffView: View {
                             nextPaymentDate: paymentDate
                         )
                     } onDelete: {
+                        budgetStore.deleteDebtFromTool(debt)
                         store.deleteDebt(debt)
                     }
                     .presentationDetents([.fraction(0.86), .large])

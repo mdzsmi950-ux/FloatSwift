@@ -138,8 +138,7 @@ enum DebtSnapshotValidation {
         let scheduledStart = calendar.startOfDay(for: paymentDate)
         guard date >= scheduledStart else { return false }
 
-        let components = calendar.dateComponents([.day], from: scheduledStart)
-        guard let scheduledDay = components.day else { return false }
+        let scheduledDay = calendar.component(.day, from: scheduledStart)
         let currentDay = calendar.component(.day, from: date)
 
         if currentDay == scheduledDay {

@@ -207,7 +207,9 @@ final class BudgetStore: ObservableObject {
             minimumPayment: minimumPayment
         )
 
-        if let matchingBillIndex = budget.accounts[activeIndex].bills.firstIndex(where: { normalizedName($0.name) == targetName }) {
+        if let matchingBillIndex = budget.accounts[activeIndex].bills.firstIndex(where: {
+            $0.debtDetails != nil && normalizedName($0.name) == targetName
+        }) {
             budget.accounts[activeIndex].bills[matchingBillIndex].name = name
             budget.accounts[activeIndex].bills[matchingBillIndex].amount = plannedMonthlyPayment
             budget.accounts[activeIndex].bills[matchingBillIndex].startDate = nextPaymentDate.ymdString
@@ -348,9 +350,6 @@ final class BudgetStore: ObservableObject {
         plannedMonthlyPayment: Double,
         nextPaymentDate: Date
     ) {
-        let targetName = normalizedName(name)
-        var updatedBill: BudgetBill?
-
         for accountIndex in budget.accounts.indices {
             if let billIndex = budget.accounts[accountIndex].bills.firstIndex(where: { $0.id == bill.id }) {
                 budget.accounts[accountIndex].bills[billIndex].name = name
@@ -365,14 +364,6 @@ final class BudgetStore: ObservableObject {
                     interestRateAPR: interestRateAPR,
                     minimumPayment: minimumPayment
                 )
-                updatedBill = budget.accounts[accountIndex].bills[billIndex]
-            }
-        }
-
-        if let updatedBill,
-           let activeIndex = activeAccountIndex {
-            budget.accounts[activeIndex].bills.removeAll {
-                $0.id != updatedBill.id && normalizedName($0.name) == targetName
             }
         }
 
@@ -380,6 +371,7 @@ final class BudgetStore: ObservableObject {
     }
 
     func updateDebtSnapshotFromTool(
+        matchingDebtId: String? = nil,
         matchingName: String? = nil,
         name: String,
         startingBalance: Double,
@@ -390,18 +382,13 @@ final class BudgetStore: ObservableObject {
         minimumPayment: Double,
         nextPaymentDate: Date
     ) {
-        guard let activeIndex = activeAccountIndex else { return }
-        let targetName = normalizedName(matchingName ?? name)
-
-        guard let billIndex = budget.accounts[activeIndex].bills.firstIndex(where: {
-            $0.debtDetails != nil && normalizedName($0.name) == targetName
-        }) else {
+        guard let match = debtBillIndex(matchingDebtId: matchingDebtId, matchingName: matchingName ?? name) else {
             return
         }
 
-        budget.accounts[activeIndex].bills[billIndex].name = name
-        budget.accounts[activeIndex].bills[billIndex].startDate = nextPaymentDate.ymdString
-        budget.accounts[activeIndex].bills[billIndex].debtDetails = BudgetDebtDetails(
+        budget.accounts[match.accountIndex].bills[match.billIndex].name = name
+        budget.accounts[match.accountIndex].bills[match.billIndex].startDate = nextPaymentDate.ymdString
+        budget.accounts[match.accountIndex].bills[match.billIndex].debtDetails = BudgetDebtDetails(
             startingBalance: startingBalance,
             currentPrincipal: currentPrincipal,
             accruedInterest: accruedInterest,
@@ -409,6 +396,12 @@ final class BudgetStore: ObservableObject {
             interestRateAPR: interestRateAPR,
             minimumPayment: minimumPayment
         )
+        save()
+    }
+
+    func deleteDebtFromTool(_ debt: DebtPayoffItem) {
+        guard let match = debtBillIndex(matchingDebtId: debt.id, matchingName: debt.name) else { return }
+        budget.accounts[match.accountIndex].bills.remove(at: match.billIndex)
         save()
     }
 
@@ -557,6 +550,37 @@ final class BudgetStore: ObservableObject {
 
     private func normalizedName(_ value: String) -> String {
         value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private func debtBillIndex(matchingDebtId: String?, matchingName: String?) -> (accountIndex: Int, billIndex: Int)? {
+        if let billId = budgetBillId(fromPayoffDebtId: matchingDebtId) {
+            for accountIndex in budget.accounts.indices {
+                if let billIndex = budget.accounts[accountIndex].bills.firstIndex(where: {
+                    $0.id == billId && $0.debtDetails != nil
+                }) {
+                    return (accountIndex, billIndex)
+                }
+            }
+        }
+
+        guard let activeIndex = activeAccountIndex,
+              let matchingName else {
+            return nil
+        }
+
+        let targetName = normalizedName(matchingName)
+        guard let billIndex = budget.accounts[activeIndex].bills.firstIndex(where: {
+            $0.debtDetails != nil && normalizedName($0.name) == targetName
+        }) else {
+            return nil
+        }
+
+        return (activeIndex, billIndex)
+    }
+
+    private func budgetBillId(fromPayoffDebtId debtId: String?) -> String? {
+        guard let debtId, debtId.hasPrefix("budget-") else { return nil }
+        return String(debtId.dropFirst("budget-".count))
     }
 
     private func transferToAccountIndex(named billName: String) -> Int? {

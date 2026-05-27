@@ -193,6 +193,7 @@ struct SettingsView: View {
                     debtPayoffStore.syncFromBudget(store.budget)
                 } onDelete: {
                     store.deleteBill(bill)
+                    debtPayoffStore.syncFromBudget(store.budget)
                 }
                 .presentationDetents([.fraction(0.9), .large])
                 .presentationDragIndicator(.visible)
