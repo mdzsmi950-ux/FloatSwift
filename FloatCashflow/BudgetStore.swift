@@ -49,6 +49,7 @@ final class BudgetStore: ObservableObject {
                 save()
             }
         }
+        updateWidgetSnapshot()
     }
 
     var activeAccount: FloatAccount {
@@ -528,10 +529,14 @@ final class BudgetStore: ObservableObject {
 
     private func save() {
         applyDueReserveTransfers()
-        FloatWidgetSnapshot.make(from: budget).save()
-        WidgetCenter.shared.reloadAllTimelines()
+        updateWidgetSnapshot()
         guard let data = try? JSONEncoder().encode(budget) else { return }
         try? data.write(to: storageURL, options: [.atomic])
+    }
+
+    private func updateWidgetSnapshot() {
+        FloatWidgetSnapshot.make(from: budget).save()
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     enum ImportError: LocalizedError {

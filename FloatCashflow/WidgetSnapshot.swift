@@ -11,6 +11,9 @@ struct FloatWidgetSnapshot: Codable {
     var sinkingDate: String?
     var todayTitle: String
     var todayDetail: String
+    var todayItems: [FloatWidgetEvent]
+    var nextTitle: String
+    var nextDetail: String
     var updatedAt: Date
 
     static let placeholder = FloatWidgetSnapshot(
@@ -18,7 +21,10 @@ struct FloatWidgetSnapshot: Codable {
         isSinking: false,
         sinkingDate: nil,
         todayTitle: "Today",
-        todayDetail: "Open Float to build your timeline.",
+        todayDetail: "Nothing due today.",
+        todayItems: [],
+        nextTitle: "Next",
+        nextDetail: "Open Float once to refresh.",
         updatedAt: Date()
     )
 
@@ -28,12 +34,11 @@ struct FloatWidgetSnapshot: Codable {
         let sinkingDate = BudgetMath.sinkingDate(startingBalance: account.currentBalance, events: events)
         let todayEvents = events
             .filter { $0.date == Date.todayString && $0.label != "Confirmed balance" }
-            .sorted { lhs, rhs in
-                if lhs.type != rhs.type {
-                    return lhs.type == .income
-                }
-                return lhs.label < rhs.label
-            }
+            .sorted(by: widgetSort)
+        let futureEvents = events
+            .filter { $0.date > Date.todayString && $0.label != "Confirmed balance" }
+            .sorted(by: widgetSort)
+        let nextEvent = futureEvents.first
 
         return FloatWidgetSnapshot(
             accountName: account.name,
@@ -41,6 +46,9 @@ struct FloatWidgetSnapshot: Codable {
             sinkingDate: sinkingDate,
             todayTitle: todayTitle(for: todayEvents),
             todayDetail: todayDetail(for: todayEvents),
+            todayItems: todayEvents.prefix(8).map(FloatWidgetEvent.init(event:)),
+            nextTitle: nextEvent.map { "Next: \(labelDate($0.date))" } ?? "Next",
+            nextDetail: nextEvent.map { FloatWidgetEvent(event: $0).line } ?? "No upcoming items.",
             updatedAt: Date()
         )
     }
@@ -92,5 +100,35 @@ struct FloatWidgetSnapshot: Codable {
         }
 
         return "-\(money(billTotal)) going out"
+    }
+
+    private static func widgetSort(_ lhs: CashEvent, _ rhs: CashEvent) -> Bool {
+        if lhs.date != rhs.date {
+            return lhs.date < rhs.date
+        }
+        if lhs.type != rhs.type {
+            return lhs.type == .income
+        }
+        return lhs.label < rhs.label
+    }
+}
+
+struct FloatWidgetEvent: Codable, Identifiable {
+    var id: String
+    var title: String
+    var date: String
+    var amount: Double
+    var isIncome: Bool
+
+    init(event: CashEvent) {
+        id = event.id
+        title = event.label
+        date = event.date
+        amount = event.amount
+        isIncome = event.type == .income
+    }
+
+    var line: String {
+        "\(title) \(isIncome ? "+" : "-")\(money(amount))"
     }
 }
