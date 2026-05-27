@@ -16,13 +16,13 @@ struct ContentView: View {
         Color(hex: store.activeAccount.color)
     }
 
+    private var usesOmbreBackground: Bool {
+        store.selectedPalette.usesOmbreBackground
+    }
+
     var body: some View {
         ZStack {
-            LinearGradient(
-                colors: [accountColor, accountColor, .white],
-                startPoint: .top,
-                endPoint: .bottom
-            )
+            appBackground
             .ignoresSafeArea()
 
             Group {
@@ -40,7 +40,7 @@ struct ContentView: View {
                 }
             }
 
-            floatingNavigation
+            bottomNavigation
 
             if showOnboarding {
                 VStack {
@@ -149,58 +149,87 @@ struct ContentView: View {
         return store.budget.accounts.first { $0.id == quickBalanceAccountId }
     }
 
-    private var floatingNavigation: some View {
+    @ViewBuilder
+    private var appBackground: some View {
+        if usesOmbreBackground {
+            LinearGradient(
+                colors: [accountColor, accountColor.opacity(0.42), .white, .white],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        } else {
+            accountColor
+        }
+    }
+
+    private var bottomNavigation: some View {
         VStack {
             Spacer()
-            HStack {
-                Spacer()
-                VStack(alignment: .trailing, spacing: 8) {
-                    Button {
-                        cycleAccount()
-                    } label: {
-                        HStack(spacing: 10) {
-                            Text(store.activeAccount.name)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(Color.floatTextMid)
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.75)
-                                .frame(maxWidth: 108, alignment: .trailing)
-                            floatingIcon("arrow.triangle.2.circlepath")
-                        }
-                    }
-                    .buttonStyle(.plain)
-
-                    Button {
-                        selectedTab = selectedTab == .overview ? .settings : .overview
-                    } label: {
-                        HStack(spacing: 10) {
-                            Text(selectedTab == .overview ? "Settings" : "Overview")
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(Color.floatTextMid)
-                            floatingIcon(selectedTab == .overview ? "gearshape.fill" : "chart.line.uptrend.xyaxis")
-                        }
-                    }
-                    .buttonStyle(.plain)
+            HStack(spacing: 0) {
+                bottomTab(
+                    title: "Overview",
+                    icon: "chart.line.uptrend.xyaxis",
+                    isSelected: selectedTab == .overview
+                ) {
+                    selectedTab = .overview
                 }
-                .padding(.trailing, 20)
-                .padding(.bottom, 24)
+
+                Divider()
+                    .frame(height: 34)
+                    .opacity(0.45)
+
+                bottomTab(
+                    title: store.activeAccount.name,
+                    icon: "arrow.triangle.2.circlepath",
+                    isSelected: false
+                ) {
+                    cycleAccount()
+                }
+
+                Divider()
+                    .frame(height: 34)
+                    .opacity(0.45)
+
+                bottomTab(
+                    title: "Settings",
+                    icon: "gearshape",
+                    isSelected: selectedTab == .settings
+                ) {
+                    selectedTab = .settings
+                }
             }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+            .background(.white.opacity(0.78))
+            .clipShape(RoundedRectangle(cornerRadius: 22))
+            .overlay(
+                RoundedRectangle(cornerRadius: 22)
+                    .stroke(.black.opacity(0.08), lineWidth: 0.5)
+            )
+            .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 14)
         }
         .zIndex(8)
     }
 
-    private func floatingIcon(_ systemName: String) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 18, weight: .semibold))
-            .foregroundStyle(Color.floatTextMid)
-            .frame(width: 48, height: 48)
-            .background(.white.opacity(0.72))
-            .clipShape(Circle())
-            .overlay(
-                Circle()
-                    .stroke(.black.opacity(0.08), lineWidth: 0.5)
-            )
-            .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+    private func bottomTab(title: String, icon: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .symbolVariant(isSelected ? .fill : .none)
+                Text(title)
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+            }
+            .foregroundStyle(isSelected ? Color.floatText : Color.floatTextMid)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func cycleAccount() {
