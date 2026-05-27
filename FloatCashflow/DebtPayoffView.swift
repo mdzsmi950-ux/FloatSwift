@@ -87,7 +87,7 @@ struct DebtPayoffView: View {
     }
 
     private var note: some View {
-        Text("Plan debts sync here for payoff planning. Changes made inside this tool stay planning-only and will not change Plan or your cash-flow timeline.")
+        Text("Changes in Plan will sync here for payoff planning. Changes made inside this tool stay planning-only and will not change Plan or your cash-flow timeline.")
             .font(.system(size: 12))
             .foregroundStyle(Color.floatTextFaint)
             .lineSpacing(3)

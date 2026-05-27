@@ -426,7 +426,7 @@ struct SettingsView: View {
                             Text("Debt Payoff")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color.floatText)
-                            guidanceText("Plan debts sync here for payoff planning. Changes made here stay planning-only.")
+                            guidanceText("Changes in Plan will sync here for payoff planning. Changes made here stay planning-only.")
                         }
 
                         Spacer()
