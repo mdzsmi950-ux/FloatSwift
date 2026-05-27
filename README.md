@@ -85,4 +85,4 @@ Recommended manual test pass before release:
 
 ## Notes
 
-Float Cashflow is intentionally not a full category-based budgeting app. Its core purpose is short-term cash-flow visibility: showing what happens to an account after each paycheck, bill, card payment, debt payment, and transfer-like obligation.
+Float Cashflow is intentionally not a full category-based budgeting app. Its core purpose is short-term cash-flow visibility: showing what happens to an account after each paycheck, bill, card payment, and debt payment.
