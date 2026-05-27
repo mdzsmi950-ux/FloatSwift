@@ -39,7 +39,6 @@ struct BudgetBill: Codable, Identifiable, Equatable {
     var startDate: String
     var frequency: Frequency
     var active: Bool
-    var linkedTransferId: String?
     var debtDetails: BudgetDebtDetails? = nil
 }
 
@@ -63,7 +62,6 @@ struct BudgetIncome: Codable, Identifiable, Equatable {
     var startDate: String
     var frequency: Frequency
     var active: Bool
-    var linkedTransferId: String?
 }
 
 struct FloatAccount: Codable, Identifiable, Equatable {
@@ -77,7 +75,6 @@ struct FloatAccount: Codable, Identifiable, Equatable {
     var bills: [BudgetBill]
     var income: [BudgetIncome]
     var paidEarlyBills: [PaidEarlyBill]
-    var appliedReserveTransfers: [String]
     var balanceIsConfirmed: Bool
 
     enum CodingKeys: String, CodingKey {
@@ -91,7 +88,6 @@ struct FloatAccount: Codable, Identifiable, Equatable {
         case bills
         case income
         case paidEarlyBills
-        case appliedReserveTransfers
         case balanceIsConfirmed
     }
 
@@ -106,7 +102,6 @@ struct FloatAccount: Codable, Identifiable, Equatable {
         bills: [BudgetBill],
         income: [BudgetIncome],
         paidEarlyBills: [PaidEarlyBill],
-        appliedReserveTransfers: [String],
         balanceIsConfirmed: Bool
     ) {
         self.id = id
@@ -119,7 +114,6 @@ struct FloatAccount: Codable, Identifiable, Equatable {
         self.bills = bills
         self.income = income
         self.paidEarlyBills = paidEarlyBills
-        self.appliedReserveTransfers = appliedReserveTransfers
         self.balanceIsConfirmed = balanceIsConfirmed
     }
 
@@ -136,7 +130,6 @@ struct FloatAccount: Codable, Identifiable, Equatable {
         bills = try container.decodeIfPresent([BudgetBill].self, forKey: .bills) ?? []
         income = try container.decodeIfPresent([BudgetIncome].self, forKey: .income) ?? []
         paidEarlyBills = try container.decodeIfPresent([PaidEarlyBill].self, forKey: .paidEarlyBills) ?? []
-        appliedReserveTransfers = try container.decodeIfPresent([String].self, forKey: .appliedReserveTransfers) ?? []
         balanceIsConfirmed = try container.decodeIfPresent(Bool.self, forKey: .balanceIsConfirmed) ?? true
     }
 }
@@ -186,7 +179,6 @@ extension FloatBudget {
                 bills: [],
                 income: [],
                 paidEarlyBills: [],
-                appliedReserveTransfers: [],
                 balanceIsConfirmed: true
             )
         ]
@@ -208,7 +200,6 @@ extension FloatBudget {
                     bills: [],
                     income: [],
                     paidEarlyBills: [],
-                    appliedReserveTransfers: [],
                     balanceIsConfirmed: false
                 )
             ]

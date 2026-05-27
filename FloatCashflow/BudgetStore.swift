@@ -26,7 +26,6 @@ final class BudgetStore: ObservableObject {
            let decoded = try? JSONDecoder().decode(FloatBudget.self, from: data) {
             budget = decoded
             cleanWidgetAccountSelection()
-            applyDueReserveTransfers()
         } else if let legacyBudget = LegacyBudgetMigration.budgetFromContainerFiles() {
             budget = legacyBudget
             if budget.activeAccount == nil {
@@ -81,7 +80,6 @@ final class BudgetStore: ObservableObject {
             bills: [],
             income: [],
             paidEarlyBills: [],
-            appliedReserveTransfers: [],
             balanceIsConfirmed: true
         )
 
@@ -145,7 +143,6 @@ final class BudgetStore: ObservableObject {
     func updateReserve(balance: Double) {
         updateActiveAccount {
             $0.reserveBalance = balance
-            $0.appliedReserveTransfers = $0.appliedReserveTransfers
         }
     }
 
@@ -159,9 +156,6 @@ final class BudgetStore: ObservableObject {
         guard let activeIndex = activeAccountIndex else { return }
 
         let stamp = timestamp()
-        let transferId = "transfer-\(stamp)"
-        let targetIndex = transferToAccountIndex(named: name).flatMap { $0 == activeIndex ? nil : $0 }
-        let linkedTransferId = targetIndex == nil ? nil : transferId
 
         budget.accounts[activeIndex].bills.append(BudgetBill(
             id: "bill-\(stamp)",
@@ -169,21 +163,8 @@ final class BudgetStore: ObservableObject {
             amount: amount,
             startDate: startDate.ymdString,
             frequency: frequency,
-            active: true,
-            linkedTransferId: linkedTransferId
+            active: true
         ))
-
-        if let targetIndex {
-            budget.accounts[targetIndex].income.append(BudgetIncome(
-                id: "income-transfer-\(stamp)",
-                label: "Transfer from \(budget.accounts[activeIndex].name)",
-                amount: amount,
-                startDate: startDate.ymdString,
-                frequency: frequency,
-                active: true,
-                linkedTransferId: transferId
-            ))
-        }
 
         save()
     }
@@ -231,7 +212,6 @@ final class BudgetStore: ObservableObject {
             startDate: nextPaymentDate.ymdString,
             frequency: .monthly,
             active: true,
-            linkedTransferId: nil,
             debtDetails: debtDetails
         ))
 
@@ -242,9 +222,6 @@ final class BudgetStore: ObservableObject {
         guard let activeIndex = activeAccountIndex else { return }
 
         let stamp = timestamp()
-        let transferId = "transfer-\(stamp)"
-        let sourceIndex = transferFromAccountIndex(label: label).flatMap { $0 == activeIndex ? nil : $0 }
-        let linkedTransferId = sourceIndex == nil ? nil : transferId
 
         budget.accounts[activeIndex].income.append(BudgetIncome(
             id: "income-\(stamp)",
@@ -252,21 +229,8 @@ final class BudgetStore: ObservableObject {
             amount: amount,
             startDate: startDate.ymdString,
             frequency: frequency,
-            active: true,
-            linkedTransferId: linkedTransferId
+            active: true
         ))
-
-        if let sourceIndex {
-            budget.accounts[sourceIndex].bills.append(BudgetBill(
-                id: "bill-transfer-\(stamp)",
-                name: "Transfer to \(budget.accounts[activeIndex].name)",
-                amount: amount,
-                startDate: startDate.ymdString,
-                frequency: frequency,
-                active: true,
-                linkedTransferId: transferId
-            ))
-        }
 
         save()
     }
@@ -294,49 +258,17 @@ final class BudgetStore: ObservableObject {
     func deleteBill(_ bill: BudgetBill) {
         for index in budget.accounts.indices {
             budget.accounts[index].bills.removeAll { $0.id == bill.id }
-            if let linkedTransferId = bill.linkedTransferId {
-                budget.accounts[index].income.removeAll { $0.linkedTransferId == linkedTransferId }
-            }
         }
         save()
     }
 
     func updateBill(_ bill: BudgetBill, name: String, amount: Double, startDate: Date, frequency: Frequency) {
-        let wasTransfer = bill.name.lowercased().hasPrefix("transfer to ")
-        let willBeTransfer = name.lowercased().hasPrefix("transfer to ")
-        let linkedTransferId = bill.linkedTransferId
-
-        if wasTransfer, !willBeTransfer, let linkedTransferId {
-            for accountIndex in budget.accounts.indices {
-                if let billIndex = budget.accounts[accountIndex].bills.firstIndex(where: { $0.id == bill.id }) {
-                    budget.accounts[accountIndex].bills[billIndex].name = name
-                    budget.accounts[accountIndex].bills[billIndex].amount = amount
-                    budget.accounts[accountIndex].bills[billIndex].startDate = startDate.ymdString
-                    budget.accounts[accountIndex].bills[billIndex].frequency = frequency
-                    budget.accounts[accountIndex].bills[billIndex].linkedTransferId = nil
-                }
-                budget.accounts[accountIndex].income.removeAll { $0.linkedTransferId == linkedTransferId }
-            }
-            save()
-            return
-        }
-
         for accountIndex in budget.accounts.indices {
             if let billIndex = budget.accounts[accountIndex].bills.firstIndex(where: { $0.id == bill.id }) {
                 budget.accounts[accountIndex].bills[billIndex].name = name
                 budget.accounts[accountIndex].bills[billIndex].amount = amount
                 budget.accounts[accountIndex].bills[billIndex].startDate = startDate.ymdString
                 budget.accounts[accountIndex].bills[billIndex].frequency = frequency
-            }
-
-            if let linkedTransferId {
-                for incomeIndex in budget.accounts[accountIndex].income.indices where budget.accounts[accountIndex].income[incomeIndex].linkedTransferId == linkedTransferId {
-                    budget.accounts[accountIndex].income[incomeIndex].amount = amount
-                    budget.accounts[accountIndex].income[incomeIndex].startDate = startDate.ymdString
-                    if frequency != .annual {
-                        budget.accounts[accountIndex].income[incomeIndex].frequency = frequency
-                    }
-                }
             }
         }
         save()
@@ -412,47 +344,17 @@ final class BudgetStore: ObservableObject {
     func deleteIncome(_ income: BudgetIncome) {
         for index in budget.accounts.indices {
             budget.accounts[index].income.removeAll { $0.id == income.id }
-            if let linkedTransferId = income.linkedTransferId {
-                budget.accounts[index].bills.removeAll { $0.linkedTransferId == linkedTransferId }
-            }
         }
         save()
     }
 
     func updateIncome(_ income: BudgetIncome, label: String, amount: Double, startDate: Date, frequency: Frequency) {
-        let wasTransfer = income.label.lowercased().hasPrefix("transfer from ")
-        let willBeTransfer = label.lowercased().hasPrefix("transfer from ")
-        let linkedTransferId = income.linkedTransferId
-
-        if wasTransfer, !willBeTransfer, let linkedTransferId {
-            for accountIndex in budget.accounts.indices {
-                if let incomeIndex = budget.accounts[accountIndex].income.firstIndex(where: { $0.id == income.id }) {
-                    budget.accounts[accountIndex].income[incomeIndex].label = label
-                    budget.accounts[accountIndex].income[incomeIndex].amount = amount
-                    budget.accounts[accountIndex].income[incomeIndex].startDate = startDate.ymdString
-                    budget.accounts[accountIndex].income[incomeIndex].frequency = frequency
-                    budget.accounts[accountIndex].income[incomeIndex].linkedTransferId = nil
-                }
-                budget.accounts[accountIndex].bills.removeAll { $0.linkedTransferId == linkedTransferId }
-            }
-            save()
-            return
-        }
-
         for accountIndex in budget.accounts.indices {
             if let incomeIndex = budget.accounts[accountIndex].income.firstIndex(where: { $0.id == income.id }) {
                 budget.accounts[accountIndex].income[incomeIndex].label = label
                 budget.accounts[accountIndex].income[incomeIndex].amount = amount
                 budget.accounts[accountIndex].income[incomeIndex].startDate = startDate.ymdString
                 budget.accounts[accountIndex].income[incomeIndex].frequency = frequency
-            }
-
-            if let linkedTransferId {
-                for billIndex in budget.accounts[accountIndex].bills.indices where budget.accounts[accountIndex].bills[billIndex].linkedTransferId == linkedTransferId {
-                    budget.accounts[accountIndex].bills[billIndex].amount = amount
-                    budget.accounts[accountIndex].bills[billIndex].startDate = startDate.ymdString
-                    budget.accounts[accountIndex].bills[billIndex].frequency = frequency
-                }
             }
         }
         save()
@@ -497,7 +399,6 @@ final class BudgetStore: ObservableObject {
         markRealBudget()
         lastBackupImportDate = Date()
         defaults.set(lastBackupImportDate, forKey: AppStorageKey.lastBackupImportDate)
-        applyDueReserveTransfers()
         save()
     }
 
@@ -540,7 +441,6 @@ final class BudgetStore: ObservableObject {
     }
 
     private func save() {
-        applyDueReserveTransfers()
         cleanWidgetAccountSelection()
         updateWidgetSnapshot()
         guard let data = try? JSONEncoder().encode(budget) else { return }
@@ -591,19 +491,22 @@ final class BudgetStore: ObservableObject {
             }
         }
 
-        guard let activeIndex = activeAccountIndex,
-              let matchingName else {
+        guard let matchingName else {
             return nil
         }
 
         let targetName = normalizedName(matchingName)
-        guard let billIndex = budget.accounts[activeIndex].bills.firstIndex(where: {
-            $0.debtDetails != nil && normalizedName($0.name) == targetName
-        }) else {
-            return nil
+        var nameMatches: [(accountIndex: Int, billIndex: Int)] = []
+        for accountIndex in budget.accounts.indices {
+            for billIndex in budget.accounts[accountIndex].bills.indices {
+                let bill = budget.accounts[accountIndex].bills[billIndex]
+                if bill.debtDetails != nil && normalizedName(bill.name) == targetName {
+                    nameMatches.append((accountIndex, billIndex))
+                }
+            }
         }
 
-        return (activeIndex, billIndex)
+        return nameMatches.count == 1 ? nameMatches[0] : nil
     }
 
     private func budgetBillId(fromPayoffDebtId debtId: String?) -> String? {
@@ -611,38 +514,6 @@ final class BudgetStore: ObservableObject {
         return String(debtId.dropFirst("budget-".count))
     }
 
-    private func transferToAccountIndex(named billName: String) -> Int? {
-        let normalized = billName.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard normalized.hasPrefix("transfer to ") else { return nil }
-
-        let targetName = normalized
-            .replacingOccurrences(of: "transfer to ", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard targetName != "reserve" else { return nil }
-        return budget.accounts.firstIndex { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == targetName }
-    }
-
-    private func transferFromAccountIndex(label: String) -> Int? {
-        let normalized = label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard normalized.hasPrefix("transfer from ") else { return nil }
-
-        let sourceName = normalized
-            .replacingOccurrences(of: "transfer from ", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        return budget.accounts.firstIndex { $0.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == sourceName }
-    }
-
-    private func applyDueReserveTransfers() {
-        for index in budget.accounts.indices {
-            let dueTransfers = BudgetMath.dueReserveTransfers(account: budget.accounts[index])
-            guard !dueTransfers.isEmpty else { continue }
-
-            budget.accounts[index].reserveBalance += dueTransfers.reduce(0) { $0 + $1.amount }
-            budget.accounts[index].appliedReserveTransfers.append(contentsOf: dueTransfers.map(\.id))
-        }
-    }
 }
 
 enum AppStorageKey {

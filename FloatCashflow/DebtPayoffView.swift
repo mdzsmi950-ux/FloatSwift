@@ -249,6 +249,7 @@ private struct DebtEditor: View {
     @State private var minimumPayment: String
     @State private var plannedPayment: String
     @State private var nextPaymentDate: Date
+    @State private var validationError: String?
     @State private var showDeleteAlert = false
     @State private var showIncompleteSnapshotAlert = false
     @State private var showLargeBalanceAlert = false
@@ -316,6 +317,13 @@ private struct DebtEditor: View {
                 SheetActionButton(title: "Confirm", fill: .primary) {
                     attemptSave()
                 }
+            }
+
+            if let validationError {
+                Text(validationError)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.floatWarning)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .interactiveDismissDisabled(snapshotHasChanges)
@@ -389,6 +397,12 @@ private struct DebtEditor: View {
     }
 
     private func attemptSave() {
+        if let debtValidationError {
+            validationError = debtValidationError
+            return
+        }
+        validationError = nil
+
         switch snapshotIssue {
         case .incompleteSnapshot:
             showIncompleteSnapshotAlert = true
@@ -416,19 +430,41 @@ private struct DebtEditor: View {
 
     private func saveAndDismiss() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else { return }
+        guard debtValidationError == nil,
+              let starting = parseAmount(startingBalance),
+              let principal = parseAmount(currentPrincipal),
+              let interest = parseAmount(accruedInterest),
+              let rate = parseAmount(apr),
+              let minimum = parseAmount(minimumPayment),
+              let planned = parseAmount(plannedPayment) else {
+            validationError = debtValidationError ?? "Enter valid debt details."
+            return
+        }
         onSave(
             trimmedName,
-            Double(startingBalance) ?? debt?.startingBalance ?? 0,
-            Double(currentPrincipal) ?? debt?.currentPrincipal ?? 0,
-            Double(accruedInterest) ?? debt?.accruedInterest ?? 0,
+            starting,
+            principal,
+            interest,
             balanceDate,
-            Double(apr) ?? debt?.interestRateAPR ?? 0,
-            Double(minimumPayment) ?? debt?.minimumPayment ?? 0,
-            Double(plannedPayment) ?? debt?.plannedMonthlyPayment ?? 0,
+            rate,
+            minimum,
+            planned,
             nextPaymentDate
         )
         dismiss()
+    }
+
+    private var debtValidationError: String? {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return "Enter a debt name."
+        }
+        guard parseAmount(startingBalance) != nil else { return "Enter a valid starting balance." }
+        guard parseAmount(currentPrincipal) != nil else { return "Enter a valid current principal." }
+        guard parseAmount(accruedInterest) != nil else { return "Enter valid accrued interest." }
+        guard parseAmount(apr) != nil else { return "Enter a valid interest rate." }
+        guard parseAmount(minimumPayment) != nil else { return "Enter a valid minimum payment." }
+        guard parseAmount(plannedPayment) != nil else { return "Enter a valid monthly payment." }
+        return nil
     }
 
     private func debtDatePicker(date: Binding<Date>) -> some View {

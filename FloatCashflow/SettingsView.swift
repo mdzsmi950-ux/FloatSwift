@@ -15,6 +15,9 @@ struct SettingsView: View {
     @State private var confirmBalanceText = ""
     @State private var reserveText = ""
     @State private var reserveGoalText = ""
+    @State private var confirmBalanceError: String?
+    @State private var reserveError: String?
+    @State private var reserveGoalError: String?
     @State private var showImportPicker = false
     @State private var showExportPicker = false
     @State private var exportDocument = BackupDocument()
@@ -469,11 +472,16 @@ struct SettingsView: View {
                             keyboard: .decimalPad
                         )
                         FloatButton(title: "Update") {
-                            guard let amount = Double(reserveText) else { return }
+                            guard let amount = parseAmount(reserveText) else {
+                                reserveError = "Enter a valid saved amount."
+                                return
+                            }
                             store.updateReserve(balance: amount)
                             reserveText = ""
+                            reserveError = nil
                         }
                     }
+                    fieldError(reserveError)
                 }
 
                 settingsControlGroup("Reserve goal") {
@@ -484,11 +492,16 @@ struct SettingsView: View {
                             keyboard: .decimalPad
                         )
                         FloatButton(title: "Set Goal") {
-                            guard let amount = Double(reserveGoalText) else { return }
+                            guard let amount = parseAmount(reserveGoalText) else {
+                                reserveGoalError = "Enter a valid reserve goal."
+                                return
+                            }
                             store.updateReserveGoal(amount)
                             reserveGoalText = ""
+                            reserveGoalError = nil
                         }
                     }
+                    fieldError(reserveGoalError)
                 }
             }
         }
@@ -505,11 +518,16 @@ struct SettingsView: View {
                         keyboard: .decimalPad
                     )
                     FloatButton(title: "Confirm") {
-                        guard let amount = Double(confirmBalanceText) else { return }
+                        guard let amount = parseAmount(confirmBalanceText) else {
+                            confirmBalanceError = "Enter a valid balance."
+                            return
+                        }
                         store.confirmBalance(amount)
                         confirmBalanceText = ""
+                        confirmBalanceError = nil
                     }
                 }
+                fieldError(confirmBalanceError)
             }
         }
     }
@@ -1514,6 +1532,7 @@ struct BillEditor: View {
     @State private var date: Date
     @State private var dateWasChosen: Bool
     @State private var saveAttempted = false
+    @State private var validationError: String?
     @State private var frequency: Frequency
     @State private var showDeleteAlert = false
 
@@ -1575,13 +1594,25 @@ struct BillEditor: View {
 
                 SheetActionButton(title: "Confirm", fill: .primary) {
                     saveAttempted = true
-                    let nextName = name.isEmpty ? bill?.name ?? "" : name
-                    let parsedAmount = Double(amount) ?? bill?.amount ?? 0
-                    guard dateWasChosen, !nextName.isEmpty else { return }
+                    let nextName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !nextName.isEmpty else {
+                        validationError = "Enter a bill name."
+                        return
+                    }
+                    guard let parsedAmount = parseAmount(amount) else {
+                        validationError = "Enter a valid bill amount."
+                        return
+                    }
+                    guard dateWasChosen else {
+                        validationError = "Choose a bill date."
+                        return
+                    }
+                    validationError = nil
                     onSave(nextName, parsedAmount, date, frequency)
                     dismiss()
                 }
             }
+            fieldError(validationError)
         }
         .alert("Delete \(bill?.name ?? "Bill")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
@@ -1606,6 +1637,7 @@ struct IncomeEditor: View {
     @State private var date: Date
     @State private var dateWasChosen: Bool
     @State private var saveAttempted = false
+    @State private var validationError: String?
     @State private var frequency: Frequency
     @State private var showDeleteAlert = false
 
@@ -1658,13 +1690,25 @@ struct IncomeEditor: View {
 
                 SheetActionButton(title: "Confirm", fill: .primary) {
                     saveAttempted = true
-                    let nextLabel = label.isEmpty ? income?.label ?? "" : label
-                    let parsedAmount = Double(amount) ?? income?.amount ?? 0
-                    guard dateWasChosen, !nextLabel.isEmpty else { return }
+                    let nextLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
+                    guard !nextLabel.isEmpty else {
+                        validationError = "Enter an income name."
+                        return
+                    }
+                    guard let parsedAmount = parseAmount(amount) else {
+                        validationError = "Enter a valid income amount."
+                        return
+                    }
+                    guard dateWasChosen else {
+                        validationError = "Choose an income date."
+                        return
+                    }
+                    validationError = nil
                     onSave(nextLabel, parsedAmount, date, frequency)
                     dismiss()
                 }
             }
+            fieldError(validationError)
         }
         .alert("Delete \(income?.label ?? "Income")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
@@ -1693,6 +1737,7 @@ struct DebtBillEditor: View {
     @State private var minimumPayment: String
     @State private var monthlyPayment: String
     @State private var paymentDate: Date
+    @State private var validationError: String?
     @State private var showDeleteAlert = false
     @State private var showIncompleteSnapshotAlert = false
     @State private var showLargeBalanceAlert = false
@@ -1767,6 +1812,7 @@ struct DebtBillEditor: View {
                     attemptSave()
                 }
             }
+            fieldError(validationError)
         }
         .interactiveDismissDisabled(snapshotHasChanges)
         .alert("Delete \(bill?.name ?? "Debt")?", isPresented: $showDeleteAlert) {
@@ -1894,6 +1940,12 @@ struct DebtBillEditor: View {
     }
 
     private func attemptSave() {
+        if let debtValidationError {
+            validationError = debtValidationError
+            return
+        }
+        validationError = nil
+
         switch snapshotIssue {
         case .incompleteSnapshot:
             showIncompleteSnapshotAlert = true
@@ -1921,19 +1973,41 @@ struct DebtBillEditor: View {
 
     private func saveAndDismiss() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedName.isEmpty else { return }
+        guard debtValidationError == nil,
+              let starting = parseAmount(startingBalance),
+              let principal = parseAmount(currentPrincipal),
+              let interest = parseAmount(accruedInterest),
+              let rate = parseAmount(apr),
+              let minimum = parseAmount(minimumPayment),
+              let monthly = parseAmount(monthlyPayment) else {
+            validationError = debtValidationError ?? "Enter valid debt details."
+            return
+        }
         onSave(
             trimmedName,
-            Double(startingBalance) ?? bill?.debtDetails?.startingBalance ?? 0,
-            Double(currentPrincipal) ?? bill?.debtDetails?.currentPrincipal ?? 0,
-            Double(accruedInterest) ?? bill?.debtDetails?.accruedInterest ?? 0,
+            starting,
+            principal,
+            interest,
             balanceDate,
-            Double(apr) ?? bill?.debtDetails?.interestRateAPR ?? 0,
-            Double(minimumPayment) ?? bill?.debtDetails?.minimumPayment ?? 0,
-            Double(monthlyPayment) ?? bill?.amount ?? 0,
+            rate,
+            minimum,
+            monthly,
             paymentDate
         )
         dismiss()
+    }
+
+    private var debtValidationError: String? {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return "Enter a debt name."
+        }
+        guard parseAmount(startingBalance) != nil else { return "Enter a valid starting balance." }
+        guard parseAmount(currentPrincipal) != nil else { return "Enter a valid current principal." }
+        guard parseAmount(accruedInterest) != nil else { return "Enter valid accrued interest." }
+        guard parseAmount(apr) != nil else { return "Enter a valid interest rate." }
+        guard parseAmount(minimumPayment) != nil else { return "Enter a valid minimum payment." }
+        guard parseAmount(monthlyPayment) != nil else { return "Enter a valid monthly payment." }
+        return nil
     }
 
     private func editorDatePicker(date: Binding<Date>) -> some View {
@@ -1972,6 +2046,7 @@ struct AccountEditor: View {
     @State private var showInWidget: Bool
     @State private var ownsWidgetSelection: Bool
     @State private var replacementAccountName: String?
+    @State private var validationError: String?
     @State private var showDeleteAlert = false
     @State private var showReplaceWidgetAlert = false
 
@@ -2037,11 +2112,16 @@ struct AccountEditor: View {
 
                 SheetActionButton(title: "Save", fill: .primary) {
                     let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !trimmedName.isEmpty else { return }
+                    guard !trimmedName.isEmpty else {
+                        validationError = "Enter an account name."
+                        return
+                    }
+                    validationError = nil
                     onSave(trimmedName)
                     dismiss()
                 }
             }
+            fieldError(validationError)
         }
         .alert("Delete \(account?.name ?? "Account")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
@@ -2223,5 +2303,15 @@ private func labeled<Content: View>(_ title: String, @ViewBuilder content: () ->
             .font(.system(size: 12))
             .foregroundStyle(Color.floatText)
         content()
+    }
+}
+
+@ViewBuilder
+private func fieldError(_ message: String?) -> some View {
+    if let message {
+        Text(message)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Color.floatWarning)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

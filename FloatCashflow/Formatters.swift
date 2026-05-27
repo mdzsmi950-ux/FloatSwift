@@ -29,6 +29,19 @@ func signedMoney(_ amount: Double) -> String {
     return "\(prefix)\(money(abs(amount)))"
 }
 
+func parseAmount(_ text: String) -> Double? {
+    let cleaned = text
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+        .replacingOccurrences(of: "$", with: "")
+        .replacingOccurrences(of: ",", with: "")
+    guard !cleaned.isEmpty,
+          let amount = Double(cleaned),
+          amount >= 0 else {
+        return nil
+    }
+    return amount
+}
+
 func labelDate(_ value: String) -> String {
     guard let date = Date.yyyyMMdd.date(from: value) else { return value }
     let calendar = Calendar(identifier: .gregorian)

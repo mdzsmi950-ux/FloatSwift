@@ -6,13 +6,6 @@ enum BudgetMath {
         return min(100, (account.reserveBalance / account.reserveGoal) * 100)
     }
 
-    static func dueReserveTransfers(account: FloatAccount, currentDate: String = Date.todayString) -> [CashEvent] {
-        buildEvents(account: account, cutoff: currentDate)
-            .filter { $0.type == .bill }
-            .filter { $0.label.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == "transfer to reserve" }
-            .filter { !account.appliedReserveTransfers.contains($0.id) }
-    }
-
     static func cutoff(from date: Date = Date()) -> String {
         let calendar = Calendar(identifier: .gregorian)
         let start = calendar.date(from: calendar.dateComponents([.year, .month, .day], from: date)) ?? date

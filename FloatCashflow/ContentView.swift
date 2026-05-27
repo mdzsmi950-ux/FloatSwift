@@ -324,6 +324,7 @@ private struct QuickBalanceEditor: View {
     var onConfirm: (Double) -> Void
 
     @State private var amountText: String
+    @State private var validationError: String?
     @FocusState private var amountIsFocused: Bool
 
     init(account: FloatAccount, onCancel: @escaping () -> Void, onConfirm: @escaping (Double) -> Void) {
@@ -363,10 +364,20 @@ private struct QuickBalanceEditor: View {
 
                 Button("Confirm") {
                     UIApplication.dismissKeyboard()
-                    guard let amount = Double(amountText) else { return }
+                    guard let amount = parseAmount(amountText) else {
+                        validationError = "Enter a valid balance."
+                        return
+                    }
+                    validationError = nil
                     onConfirm(amount)
                 }
                 .buttonStyle(QuickBalanceButtonStyle(fill: .primary))
+            }
+
+            if let validationError {
+                Text(validationError)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(Color.floatWarning)
             }
         }
         .padding(18)

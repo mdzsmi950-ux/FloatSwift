@@ -120,7 +120,7 @@ final class QuickActionManager: ObservableObject {
                 subtitle = "Earliest: \(firstSinking.account.name) \(labelDate(firstSinking.sinkingDate))"
             }
         } else {
-            accountId = budget.activeAccountId
+            accountId = budget.widgetAccount?.id ?? budget.accounts.first?.id ?? budget.activeAccountId
             title = budget.accounts.count == 2 ? "Both Accounts Floating" : "All Accounts Floating"
             subtitle = "Open timeline"
         }
