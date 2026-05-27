@@ -83,17 +83,19 @@ struct TodayRecapWidgetView: View {
     }
 
     private var largeStatusView: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 8) {
             widgetHeader
 
-            HStack(alignment: .top, spacing: 10) {
-                metricCard(label: "Cash balance", value: money(snapshot.cashBalance))
-                metricCard(label: "Before next income", value: leftBeforeIncomeText)
+            HStack(alignment: .top, spacing: 12) {
+                metric(label: "Cash balance", value: money(snapshot.cashBalance))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                metric(label: "Before income", value: leftBeforeIncomeText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text("Next items")
-                    .font(.system(size: 12, weight: .semibold))
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Next")
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Color.floatTextFaint)
                 nextItemsList(limit: 10)
             }
@@ -129,29 +131,6 @@ struct TodayRecapWidgetView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.78)
         }
-    }
-
-    private func metricCard(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundStyle(Color.floatTextFaint)
-                .lineLimit(1)
-            Text(value)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(Color.floatText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.46))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.black.opacity(0.05), lineWidth: 0.5)
-        )
     }
 
     @ViewBuilder
