@@ -16,29 +16,51 @@ struct FloatWidgetSnapshot: Codable {
     var nextDetail: String
     var updatedAt: Date
 
+    var cashBalance: Double
+    var leftBeforeNextIncome: Double?
+    var nextIncomeDate: String?
+    var nextItems: [FloatWidgetEvent]
+    var globalIsSinking: Bool
+    var globalSinkingAccountName: String?
+    var globalSinkingDate: String?
+
     static let placeholder = FloatWidgetSnapshot(
         accountName: "Float",
         isSinking: false,
         sinkingDate: nil,
-        todayTitle: "Today",
-        todayDetail: "Nothing due today.",
+        todayTitle: "Floating",
+        todayDetail: "Open Float once to refresh.",
         todayItems: [],
-        nextTitle: "Next",
-        nextDetail: "Open Float once to refresh.",
-        updatedAt: Date()
+        nextTitle: "Status",
+        nextDetail: "Floating",
+        updatedAt: Date(),
+        cashBalance: 0,
+        leftBeforeNextIncome: nil,
+        nextIncomeDate: nil,
+        nextItems: [],
+        globalIsSinking: false,
+        globalSinkingAccountName: nil,
+        globalSinkingDate: nil
     )
 
     static func make(from budget: FloatBudget) -> FloatWidgetSnapshot {
         let account = budget.activeAccount ?? budget.accounts.first ?? FloatBudget.blank.accounts[0]
         let events = BudgetMath.buildEvents(account: account, cutoff: BudgetMath.cutoff())
+            .filter { $0.label != "Confirmed balance" }
+            .sorted(by: BudgetMath.eventComesFirst)
         let sinkingDate = BudgetMath.sinkingDate(startingBalance: account.currentBalance, events: events)
         let todayEvents = events
-            .filter { $0.date == Date.todayString && $0.label != "Confirmed balance" }
+            .filter { $0.date == Date.todayString }
+            .sorted(by: widgetSort)
+        let upcomingEvents = events
+            .filter { $0.date >= Date.todayString }
             .sorted(by: widgetSort)
         let futureEvents = events
-            .filter { $0.date > Date.todayString && $0.label != "Confirmed balance" }
+            .filter { $0.date > Date.todayString }
             .sorted(by: widgetSort)
-        let nextEvent = futureEvents.first
+        let nextEvent = futureEvents.first ?? upcomingEvents.first
+        let nextIncome = upcomingEvents.first { $0.type == .income }
+        let globalStatus = globalSinkingStatus(for: budget)
 
         return FloatWidgetSnapshot(
             accountName: account.name,
@@ -49,7 +71,14 @@ struct FloatWidgetSnapshot: Codable {
             todayItems: todayEvents.prefix(8).map(FloatWidgetEvent.init(event:)),
             nextTitle: "Status",
             nextDetail: sinkingDate.map { "Sinking \(labelDate($0))" } ?? "Floating",
-            updatedAt: Date()
+            updatedAt: Date(),
+            cashBalance: account.currentBalance,
+            leftBeforeNextIncome: leftBeforeNextIncome(account: account, events: upcomingEvents, nextIncome: nextIncome),
+            nextIncomeDate: nextIncome?.date,
+            nextItems: upcomingEvents.prefix(8).map(FloatWidgetEvent.init(event:)),
+            globalIsSinking: globalStatus.isSinking,
+            globalSinkingAccountName: globalStatus.accountName,
+            globalSinkingDate: globalStatus.date
         )
     }
 
@@ -68,6 +97,37 @@ struct FloatWidgetSnapshot: Codable {
             return
         }
         defaults.set(data, forKey: FloatWidgetShared.snapshotKey)
+    }
+
+    private static func leftBeforeNextIncome(account: FloatAccount, events: [CashEvent], nextIncome: CashEvent?) -> Double? {
+        guard let nextIncome else { return nil }
+        var running = account.currentBalance
+
+        for event in events.sorted(by: BudgetMath.eventComesFirst) where event.date < nextIncome.date {
+            running += event.type == .income ? event.amount : -event.amount
+        }
+
+        return running
+    }
+
+    private static func globalSinkingStatus(for budget: FloatBudget) -> (isSinking: Bool, accountName: String?, date: String?) {
+        let statuses = budget.accounts.compactMap { account -> (name: String, date: String)? in
+            let events = BudgetMath.buildEvents(account: account, cutoff: BudgetMath.cutoff())
+                .filter { $0.label != "Confirmed balance" }
+            guard let date = BudgetMath.sinkingDate(startingBalance: account.currentBalance, events: events) else {
+                return nil
+            }
+            return (account.name, date)
+        }
+
+        guard let earliest = statuses.sorted(by: { lhs, rhs in
+            if lhs.date != rhs.date { return lhs.date < rhs.date }
+            return lhs.name < rhs.name
+        }).first else {
+            return (false, nil, nil)
+        }
+
+        return (true, earliest.name, earliest.date)
     }
 
     private static func todayTitle(for events: [CashEvent]) -> String {
