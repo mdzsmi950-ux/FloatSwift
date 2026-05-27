@@ -257,7 +257,7 @@ struct SettingsView: View {
                 pendingImportData = nil
             }
         } message: {
-            Text("This will replace your current Float data.")
+            Text("Importing this backup will replace your current accounts, balances, income, bills, cards, debts, reserve, and debt payoff data. Export a backup first if you want to keep a copy of your current setup.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .floatStartSetup)) { _ in
             firstSetupComplete = false
@@ -655,7 +655,7 @@ struct SettingsView: View {
 
                 generalLockRow()
 
-                generalGroup("Backup", helper: "Export a backup so you do not lose your setup.") {
+                generalGroup("Backup", helper: "Export a backup to save your current setup. Importing a backup will replace your current accounts, balances, income, bills, debts, reserve, and debt payoff data.") {
                     HStack(spacing: 8) {
                         SettingsCompactButton(title: "Export Backup") {
                             prepareExport()
