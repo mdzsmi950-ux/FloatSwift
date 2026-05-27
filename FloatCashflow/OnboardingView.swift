@@ -1,11 +1,13 @@
 import SwiftUI
 
 struct OnboardingView: View {
+    var isDemoMode: Bool
     var onFinish: () -> Void
 
     @State private var pageIndex = 0
 
-    private let pages = [
+    private var pages: [OnboardingPage] {
+        [
         OnboardingPage(
             title: "Are you floating?",
             body: [
@@ -33,10 +35,13 @@ struct OnboardingView: View {
             body: [
                 "Settings is where the budget is built.",
                 "Add accounts, confirm your balance, enter bills, add income, update your reserve, and export or import a backup.",
-                "When you are done with the demo, tap Explore Demo, then tap Let’s Go to erase the sample budget and start your own."
+                isDemoMode
+                    ? "When you are done with the demo, tap Explore Demo, then tap Let’s Go to erase the sample budget and start your own."
+                    : "You can return to your budget without changing or erasing anything."
             ]
         )
-    ]
+        ]
+    }
 
     private var isLastPage: Bool {
         pageIndex == pages.count - 1
@@ -91,7 +96,7 @@ struct OnboardingView: View {
                         .frame(width: 92)
                 }
 
-                Button(isLastPage ? "Explore Demo" : "Next") {
+                Button(isLastPage ? finishTitle : "Next") {
                     goNext(allowFinish: true)
                 }
                     .buttonStyle(OnboardingButtonStyle(kind: .primary))
@@ -170,6 +175,10 @@ struct OnboardingView: View {
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
         return transaction
+    }
+
+    private var finishTitle: String {
+        isDemoMode ? "Explore Demo" : "Done"
     }
 }
 

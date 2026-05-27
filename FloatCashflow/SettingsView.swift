@@ -28,6 +28,7 @@ struct SettingsView: View {
     @State private var showDebtPayoff = false
     @AppStorage(AppStorageKey.settingsGuidanceVisible) private var showGuidance = true
     @AppStorage(AppStorageKey.firstSetupComplete) private var firstSetupComplete = false
+    @AppStorage(AppStorageKey.firstAccountSetupComplete) private var firstAccountSetupComplete = false
 
     private enum Layout {
         static let sectionGap: CGFloat = 12
@@ -77,6 +78,10 @@ struct SettingsView: View {
     private var setupStep: SetupStep? {
         guard !store.isDemoMode, !firstSetupComplete else { return nil }
         guard UserDefaults.standard.object(forKey: AppStorageKey.firstSetupComplete) != nil else { return nil }
+
+        if !firstAccountSetupComplete {
+            return .account
+        }
 
         if !account.balanceIsConfirmed {
             return .balance
@@ -268,6 +273,7 @@ struct SettingsView: View {
             Text("Importing this backup will replace your current accounts, balances, income, bills, cards, debts, reserve, and debt payoff data. Export a backup first if you want to keep a copy of your current setup.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .floatStartSetup)) { _ in
+            firstAccountSetupComplete = false
             firstSetupComplete = false
             expandSetupSection()
         }
@@ -368,8 +374,12 @@ struct SettingsView: View {
             switch step {
             case .account:
                 setupActionButton("Edit Account") {
+                    firstAccountSetupComplete = true
                     expandedSections.insert(.accounts)
                     activeSheet = .editAccount(account)
+                }
+                setupActionButton("Keep Name") {
+                    firstAccountSetupComplete = true
                 }
             case .balance:
                 setupActionButton("Confirm Balance") {

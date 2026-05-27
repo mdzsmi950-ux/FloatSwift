@@ -60,7 +60,7 @@ struct ContentView: View {
             if showOnboarding {
                 VStack {
                     Spacer()
-                    OnboardingView {
+                    OnboardingView(isDemoMode: store.isDemoMode) {
                         store.finishOnboarding()
                         showOnboarding = false
                     }

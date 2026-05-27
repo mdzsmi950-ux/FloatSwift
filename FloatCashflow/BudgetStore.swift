@@ -408,6 +408,7 @@ final class BudgetStore: ObservableObject {
 
     func startOwnBudget() {
         budget = .newUserBlank
+        defaults.set(false, forKey: AppStorageKey.firstAccountSetupComplete)
         defaults.set(false, forKey: AppStorageKey.firstSetupComplete)
         markRealBudget()
         save()
@@ -529,4 +530,5 @@ enum AppStorageKey {
     static let appLockPasscodeSalt = "float:appLockPasscodeSalt"
     static let settingsGuidanceVisible = "float:settingsGuidanceVisible"
     static let firstSetupComplete = "float:firstSetupComplete"
+    static let firstAccountSetupComplete = "float:firstAccountSetupComplete"
 }
