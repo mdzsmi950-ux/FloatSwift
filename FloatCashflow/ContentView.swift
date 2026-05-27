@@ -243,7 +243,7 @@ struct ContentView: View {
                 .padding(.top, 28)
 
                 accountSwitchBubble
-                    .offset(y: -2)
+                    .offset(y: 26)
                     .zIndex(2)
             }
             .padding(.horizontal, 20)
