@@ -417,7 +417,7 @@ struct SettingsView: View {
     private var toolsSection: some View {
         settingsCard(title: "Tools", section: .tools) {
             VStack(alignment: .leading, spacing: Layout.cardContentGap) {
-                guidanceText("Use extra calculators for planning. They stay separate from your main timeline.")
+                guidanceText("Tools are for planning only. Plan and Overview are where your real cash-flow timeline lives.")
                 Button {
                     showDebtPayoff = true
                 } label: {
@@ -426,7 +426,7 @@ struct SettingsView: View {
                             Text("Debt Payoff")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color.floatText)
-                            guidanceText("Plan long-term debt payoff separately from your cash flow timeline.")
+                            guidanceText("Plan debts sync here for payoff planning. Changes made here stay planning-only.")
                         }
 
                         Spacer()
