@@ -263,7 +263,7 @@ struct OverviewView: View {
             pay: CashEvent(
                 id: "starting-balance",
                 type: .income,
-                label: "Cash balance",
+                label: account.balanceIsConfirmed ? "Confirmed balance" : "Current balance",
                 amount: account.currentBalance,
                 date: account.lastConfirmedDate ?? Date.todayString
             ),
