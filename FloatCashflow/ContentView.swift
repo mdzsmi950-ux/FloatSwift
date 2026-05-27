@@ -223,7 +223,7 @@ struct ContentView: View {
 
                     bottomTab(
                         title: "Settings",
-                        icon: "ellipsis.circle",
+                        icon: "gearshape",
                         isSelected: selectedTab == .more
                     ) {
                         selectedTab = .more
