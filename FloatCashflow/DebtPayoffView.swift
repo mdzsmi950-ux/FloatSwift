@@ -56,16 +56,6 @@ struct DebtPayoffView: View {
                             plannedMonthlyPayment: planned,
                             nextPaymentDate: paymentDate
                         )
-                        budgetStore.updateDebtSnapshotFromTool(
-                            name: name,
-                            startingBalance: starting,
-                            currentPrincipal: principal,
-                            accruedInterest: accrued,
-                            balanceDate: balanceDate,
-                            interestRateAPR: apr,
-                            minimumPayment: minimum,
-                            nextPaymentDate: paymentDate
-                        )
                     }
                     .presentationDetents([.fraction(0.82), .large])
                     .presentationDragIndicator(.visible)
@@ -83,20 +73,7 @@ struct DebtPayoffView: View {
                             plannedMonthlyPayment: planned,
                             nextPaymentDate: paymentDate
                         )
-                        budgetStore.updateDebtSnapshotFromTool(
-                            matchingDebtId: debt.id,
-                            matchingName: debt.name,
-                            name: name,
-                            startingBalance: starting,
-                            currentPrincipal: principal,
-                            accruedInterest: accrued,
-                            balanceDate: balanceDate,
-                            interestRateAPR: apr,
-                            minimumPayment: minimum,
-                            nextPaymentDate: paymentDate
-                        )
                     } onDelete: {
-                        budgetStore.deleteDebtFromTool(debt)
                         store.deleteDebt(debt)
                     }
                     .presentationDetents([.fraction(0.86), .large])
@@ -110,7 +87,7 @@ struct DebtPayoffView: View {
     }
 
     private var note: some View {
-        Text("Debts from Plan are included in your cash-flow timeline and sync here for payoff planning. Debts added only in this tool are planning-only and will not affect your timeline.")
+        Text("Debts from Plan sync here for payoff planning. Changes made inside this tool are planning-only and will not change Plan or your cash-flow timeline.")
             .font(.system(size: 12))
             .foregroundStyle(Color.floatTextFaint)
             .lineSpacing(3)
