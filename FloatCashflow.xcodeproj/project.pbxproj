@@ -30,6 +30,9 @@
 		100000000000000000000023 /* DebtSnapshotValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000121 /* DebtSnapshotValidation.swift */; };
 		100000000000000000000025 /* QuickActionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000123 /* QuickActionManager.swift */; };
 		100000000000000000000026 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000124 /* WidgetSnapshot.swift */; };
+		100000000000000000000027 /* SettingsTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000127 /* SettingsTypes.swift */; };
+		100000000000000000000028 /* PasscodeManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000128 /* PasscodeManagementView.swift */; };
+		100000000000000000000029 /* SettingsEditors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000129 /* SettingsEditors.swift */; };
 		200000000000000000000001 /* FloatCashflowWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 200000000000000000000101 /* FloatCashflowWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		200000000000000000000002 /* FloatCashflowWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200000000000000000000102 /* FloatCashflowWidget.swift */; };
 		200000000000000000000003 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000124 /* WidgetSnapshot.swift */; };
@@ -88,6 +91,9 @@
 		100000000000000000000123 /* QuickActionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionManager.swift; sourceTree = "<group>"; };
 		100000000000000000000124 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
 		100000000000000000000125 /* FloatCashflow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FloatCashflow.entitlements; sourceTree = "<group>"; };
+		100000000000000000000127 /* SettingsTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTypes.swift; sourceTree = "<group>"; };
+		100000000000000000000128 /* PasscodeManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasscodeManagementView.swift; sourceTree = "<group>"; };
+		100000000000000000000129 /* SettingsEditors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsEditors.swift; sourceTree = "<group>"; };
 		200000000000000000000101 /* FloatCashflowWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = FloatCashflowWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		200000000000000000000102 /* FloatCashflowWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatCashflowWidget.swift; sourceTree = "<group>"; };
 		200000000000000000000103 /* FloatCashflowWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FloatCashflowWidget.entitlements; sourceTree = "<group>"; };
@@ -132,6 +138,9 @@
 				100000000000000000000106 /* ContentView.swift */,
 				100000000000000000000107 /* OverviewView.swift */,
 				100000000000000000000108 /* SettingsView.swift */,
+				100000000000000000000127 /* SettingsTypes.swift */,
+				100000000000000000000128 /* PasscodeManagementView.swift */,
+				100000000000000000000129 /* SettingsEditors.swift */,
 				100000000000000000000110 /* DemoBudget.swift */,
 				100000000000000000000111 /* OnboardingView.swift */,
 				100000000000000000000114 /* AccountPalette.swift */,
@@ -278,6 +287,9 @@
 				100000000000000000000006 /* ContentView.swift in Sources */,
 				100000000000000000000007 /* OverviewView.swift in Sources */,
 				100000000000000000000008 /* SettingsView.swift in Sources */,
+				100000000000000000000027 /* SettingsTypes.swift in Sources */,
+				100000000000000000000028 /* PasscodeManagementView.swift in Sources */,
+				100000000000000000000029 /* SettingsEditors.swift in Sources */,
 				100000000000000000000010 /* DemoBudget.swift in Sources */,
 				100000000000000000000012 /* OnboardingView.swift in Sources */,
 				100000000000000000000015 /* AccountPalette.swift in Sources */,
