@@ -98,21 +98,6 @@ struct TodayRecapWidgetView: View {
     }
 }
 
-struct FloatStatusWidgetView: View {
-    var entry: FloatWidgetEntry
-
-    var body: some View {
-        ZStack {
-            Text(entry.snapshot.isSinking ? "Sinking" : "Floating")
-                .font(.system(size: 22, weight: .bold))
-                .foregroundStyle(entry.snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
-                .lineLimit(1)
-                .minimumScaleFactor(0.62)
-        }
-        .widgetCardBackground()
-    }
-}
-
 struct TodayRecapWidget: Widget {
     let kind = "TodayRecapWidget"
 
@@ -126,24 +111,10 @@ struct TodayRecapWidget: Widget {
     }
 }
 
-struct FloatStatusWidget: Widget {
-    let kind = "FloatStatusWidget"
-
-    var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: FloatWidgetProvider()) { entry in
-            FloatStatusWidgetView(entry: entry)
-        }
-        .configurationDisplayName("Floating Status")
-        .description("See whether your active account is floating or sinking.")
-        .supportedFamilies([.systemSmall, .accessoryRectangular])
-    }
-}
-
 @main
 struct FloatCashflowWidgetBundle: WidgetBundle {
     var body: some Widget {
         TodayRecapWidget()
-        FloatStatusWidget()
     }
 }
 

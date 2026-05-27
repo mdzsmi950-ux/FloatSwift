@@ -367,7 +367,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
 				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				INFOPLIST_KEY_CFBundleDisplayName = "Float Cashflow";
+				INFOPLIST_KEY_CFBundleDisplayName = Float;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to unlock Float Cashflow.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -393,7 +393,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
 				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				INFOPLIST_KEY_CFBundleDisplayName = "Float Cashflow";
+				INFOPLIST_KEY_CFBundleDisplayName = Float;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to unlock Float Cashflow.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
