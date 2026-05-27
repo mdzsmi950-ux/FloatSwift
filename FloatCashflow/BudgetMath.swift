@@ -44,7 +44,7 @@ enum BudgetMath {
 
     static func nextRecurringDate(startDate: String, frequency: Frequency, currentDate: String) -> String {
         var date = startDate
-        while date <= currentDate {
+        while date < currentDate {
             if frequency == .oneTime { return startDate }
             guard let next = nextDate(date, frequency: frequency) else { return startDate }
             date = next
