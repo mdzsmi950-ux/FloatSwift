@@ -7,24 +7,20 @@ struct OnboardingView: View {
 
     private let pages = [
         OnboardingPage(
-            title: "Float is about timing",
-            body: "Budget categories can be useful, but they do not answer the daily question.\n\nWill the money in this account last until the next income arrives?"
+            title: "Are you floating?",
+            body: "Categories never really helped me. The real question is: will I make it to my next paycheck?"
         ),
         OnboardingPage(
-            title: "Start with cash",
-            body: "First, confirm the cash balance you actually use for bills and regular payments.\n\nThat gives Float a starting point for the timeline."
+            title: "Timeline matters",
+            body: "Enter your paychecks and recurring obligations. Float shows what your balance should look like after each paycheck, bill, and transfer."
         ),
         OnboardingPage(
-            title: "Add money in and out",
-            body: "Add your next paycheck or regular income, then add bills, cards, or debt payments.\n\nFloat uses those dates to show what happens between paydays."
+            title: "Let’s see an example",
+            body: "The screen behind this guide shows Maddie and Nick’s sample budget. Use the account name at the top to switch between accounts. The reserve bar shows how much emergency fund has been built and how much is still left to go."
         ),
         OnboardingPage(
-            title: "Read the timeline",
-            body: "Overview shows whether the account is floating or sinking.\n\nIf the projected balance drops below zero, Float shows where the trouble starts."
-        ),
-        OnboardingPage(
-            title: "Try the demo",
-            body: "You can tap around while this guide is open.\n\nWhen you are ready, close the guide and tap Let's Go. Float will erase the sample data, open Settings, and walk you through the first real setup."
+            title: "Now check Settings",
+            body: "Settings is where the budget is built. Add accounts, confirm your balance, enter bills, add income, update your reserve, and export or import a backup. When you are done with the demo, tap Next, then tap Let’s Go to erase the sample budget and start your own."
         )
     ]
 
