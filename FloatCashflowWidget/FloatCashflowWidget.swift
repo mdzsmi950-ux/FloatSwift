@@ -27,7 +27,7 @@ struct TodayRecapWidgetView: View {
     var entry: FloatWidgetEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: family == .systemSmall ? 7 : family == .systemLarge ? 12 : 9) {
+        VStack(alignment: .leading, spacing: family == .systemSmall ? 7 : 8) {
             HStack(alignment: .firstTextBaseline) {
                 Text("Today Recap")
                     .font(.system(size: family == .systemSmall ? 12 : 14, weight: .semibold))
@@ -42,7 +42,7 @@ struct TodayRecapWidgetView: View {
             }
 
             Text(entry.snapshot.todayTitle)
-                .font(.system(size: family == .systemSmall ? 17 : family == .systemLarge ? 24 : 20, weight: .bold))
+                .font(.system(size: family == .systemSmall ? 17 : 20, weight: .bold))
                 .foregroundStyle(Color.floatText)
                 .lineLimit(2)
 
@@ -53,39 +53,26 @@ struct TodayRecapWidgetView: View {
 
             if family == .systemSmall {
                 Spacer(minLength: 0)
-            } else if entry.snapshot.todayItems.isEmpty {
-                emptyTodayView
             } else {
-                eventList(limit: family == .systemLarge ? 6 : 3)
-            }
-
-            Spacer(minLength: 0)
-
-            if family != .systemSmall {
-                Divider()
-                    .opacity(0.35)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(entry.snapshot.nextTitle)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.floatTextFaint)
-                        .textCase(.uppercase)
-                    Text(entry.snapshot.nextDetail)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.floatTextMid)
-                        .lineLimit(2)
+                if !entry.snapshot.todayItems.isEmpty {
+                    eventList(limit: 3)
                 }
+                Spacer(minLength: 0)
+                statusFooter
             }
         }
         .widgetCardBackground()
     }
 
-    private var emptyTodayView: some View {
-        Text("No bills, debts, or income scheduled for today.")
-            .font(.system(size: 12))
-            .foregroundStyle(Color.floatTextFaint)
-            .lineLimit(2)
-            .padding(.top, 2)
+    private var statusFooter: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Divider()
+                .opacity(0.35)
+            Text(entry.snapshot.nextDetail)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(entry.snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
+                .lineLimit(1)
+        }
     }
 
     private func eventList(limit: Int) -> some View {
@@ -135,7 +122,7 @@ struct TodayRecapWidget: Widget {
         }
         .configurationDisplayName("Today Recap")
         .description("See what is due or arriving today.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
 

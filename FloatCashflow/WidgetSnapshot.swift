@@ -45,10 +45,10 @@ struct FloatWidgetSnapshot: Codable {
             isSinking: sinkingDate != nil,
             sinkingDate: sinkingDate,
             todayTitle: todayTitle(for: todayEvents),
-            todayDetail: todayDetail(for: todayEvents),
+            todayDetail: todayDetail(for: todayEvents, nextEvent: nextEvent),
             todayItems: todayEvents.prefix(8).map(FloatWidgetEvent.init(event:)),
-            nextTitle: nextEvent.map { "Next: \(labelDate($0.date))" } ?? "Next",
-            nextDetail: nextEvent.map { FloatWidgetEvent(event: $0).line } ?? "No upcoming items.",
+            nextTitle: "Status",
+            nextDetail: sinkingDate.map { "Sinking \(labelDate($0))" } ?? "Floating",
             updatedAt: Date()
         )
     }
@@ -71,16 +71,17 @@ struct FloatWidgetSnapshot: Codable {
     }
 
     private static func todayTitle(for events: [CashEvent]) -> String {
-        guard !events.isEmpty else { return "Today" }
+        guard !events.isEmpty else { return "Clear Today" }
         if events.count == 1 {
             return events[0].type == .income ? "Income Today" : "Due Today"
         }
         return "\(events.count) Items Today"
     }
 
-    private static func todayDetail(for events: [CashEvent]) -> String {
+    private static func todayDetail(for events: [CashEvent], nextEvent: CashEvent?) -> String {
         guard !events.isEmpty else {
-            return "Nothing due today."
+            guard let nextEvent else { return "Nothing scheduled soon." }
+            return "Next \(labelDate(nextEvent.date)) · \(FloatWidgetEvent(event: nextEvent).line)"
         }
 
         let incomeTotal = events.filter { $0.type == .income }.reduce(0) { $0 + $1.amount }
