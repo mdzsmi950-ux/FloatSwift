@@ -27,29 +27,33 @@ struct TodayRecapWidgetView: View {
     var entry: FloatWidgetEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: family == .systemLarge ? 12 : 9) {
+        VStack(alignment: .leading, spacing: family == .systemSmall ? 7 : family == .systemLarge ? 12 : 9) {
             HStack(alignment: .firstTextBaseline) {
                 Text("Today Recap")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: family == .systemSmall ? 12 : 14, weight: .semibold))
                     .foregroundStyle(Color.floatText)
                 Spacer()
-                Text(entry.snapshot.accountName)
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.floatTextFaint)
-                    .lineLimit(1)
+                if family != .systemSmall {
+                    Text(entry.snapshot.accountName)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.floatTextFaint)
+                        .lineLimit(1)
+                }
             }
 
             Text(entry.snapshot.todayTitle)
-                .font(.system(size: family == .systemLarge ? 24 : 20, weight: .bold))
+                .font(.system(size: family == .systemSmall ? 17 : family == .systemLarge ? 24 : 20, weight: .bold))
                 .foregroundStyle(Color.floatText)
                 .lineLimit(2)
 
             Text(entry.snapshot.todayDetail)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: family == .systemSmall ? 12 : 13, weight: .medium))
                 .foregroundStyle(Color.floatTextMid)
                 .lineLimit(2)
 
-            if entry.snapshot.todayItems.isEmpty {
+            if family == .systemSmall {
+                Spacer(minLength: 0)
+            } else if entry.snapshot.todayItems.isEmpty {
                 emptyTodayView
             } else {
                 eventList(limit: family == .systemLarge ? 6 : 3)
@@ -57,18 +61,20 @@ struct TodayRecapWidgetView: View {
 
             Spacer(minLength: 0)
 
-            Divider()
-                .opacity(0.35)
+            if family != .systemSmall {
+                Divider()
+                    .opacity(0.35)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text(entry.snapshot.nextTitle)
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(Color.floatTextFaint)
-                    .textCase(.uppercase)
-                Text(entry.snapshot.nextDetail)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.floatTextMid)
-                    .lineLimit(2)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(entry.snapshot.nextTitle)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.floatTextFaint)
+                        .textCase(.uppercase)
+                    Text(entry.snapshot.nextDetail)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.floatTextMid)
+                        .lineLimit(2)
+                }
             }
         }
         .widgetCardBackground()
@@ -129,7 +135,7 @@ struct TodayRecapWidget: Widget {
         }
         .configurationDisplayName("Today Recap")
         .description("See what is due or arriving today.")
-        .supportedFamilies([.systemMedium, .systemLarge])
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
 
@@ -142,7 +148,7 @@ struct FloatStatusWidget: Widget {
         }
         .configurationDisplayName("Floating Status")
         .description("See whether your active account is floating or sinking.")
-        .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryRectangular])
+        .supportedFamilies([.systemSmall, .accessoryRectangular])
     }
 }
 
