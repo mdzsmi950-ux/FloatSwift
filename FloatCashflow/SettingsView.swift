@@ -29,9 +29,11 @@ struct SettingsView: View {
         static let sectionGap: CGFloat = 12
         static let cardContentGap: CGFloat = 10
         static let itemGap: CGFloat = 12
+        static let itemGapWithoutHelper: CGFloat = 18
         static let titleToHelperGap: CGFloat = 4
         static let helperToControlGap: CGFloat = 8
         static let rowVerticalPadding: CGFloat = 6
+        static let generalPaddingWithoutHelper: CGFloat = 2
     }
 
     private var account: FloatAccount {
@@ -630,7 +632,7 @@ struct SettingsView: View {
 
     private var generalSettingsSection: some View {
         settingsCard(title: "General Settings", section: .general) {
-            VStack(alignment: .leading, spacing: Layout.itemGap) {
+            VStack(alignment: .leading, spacing: showGuidance ? Layout.itemGap : Layout.itemGapWithoutHelper) {
                 guidanceText("Adjust how Float looks, protect your data, and manage backups.")
 
                 generalGroup("Palette", helper: "Choose the color style that feels easiest to read.") {
@@ -676,6 +678,7 @@ struct SettingsView: View {
                     NotificationCenter.default.post(name: .floatReplayOnboarding, object: nil)
                 }
             }
+            .padding(.top, showGuidance ? 0 : 2)
         }
     }
 
@@ -696,6 +699,7 @@ struct SettingsView: View {
             content()
                 .padding(.top, Layout.helperToControlGap - Layout.titleToHelperGap)
         }
+        .padding(.vertical, showGuidance ? 0 : Layout.generalPaddingWithoutHelper)
     }
 
     private func settingsControlGroup<Content: View>(
@@ -742,6 +746,7 @@ struct SettingsView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .padding(.vertical, showGuidance ? 0 : Layout.generalPaddingWithoutHelper)
     }
 
     private func generalToggleRow(
@@ -781,6 +786,7 @@ struct SettingsView: View {
         .accessibilityLabel(title)
         .accessibilityValue(isOn ? "On" : "Off")
         .accessibilityAddTraits(.isButton)
+        .padding(.vertical, showGuidance ? 0 : Layout.generalPaddingWithoutHelper)
     }
 
     private func generalLockRow() -> some View {
