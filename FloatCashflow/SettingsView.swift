@@ -226,12 +226,17 @@ struct SettingsView: View {
                 .presentationDetents([.fraction(0.48), .large])
                 .presentationDragIndicator(.visible)
             case .editAccount(let editedAccount):
+                let widgetAccount = store.budget.widgetAccount
                 AccountEditor(
                     accountColor: editedAccount.color,
                     account: editedAccount,
-                    canDelete: store.budget.accounts.count > 1
+                    canDelete: store.budget.accounts.count > 1,
+                    isShownInWidget: store.budget.widgetAccountId == editedAccount.id,
+                    currentWidgetAccountName: widgetAccount?.id == editedAccount.id ? nil : widgetAccount?.name
                 ) { name in
                     store.renameAccount(id: editedAccount.id, name: name)
+                } onWidgetVisibilityChange: { isShown in
+                    store.setWidgetAccount(id: isShown ? editedAccount.id : nil)
                 } onDelete: {
                     store.deleteAccount(id: editedAccount.id)
                 }
@@ -612,6 +617,12 @@ struct SettingsView: View {
 
                         if item.id == account.id {
                             Text("Active account")
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color.floatTextFaint)
+                        }
+
+                        if item.id == store.budget.widgetAccountId {
+                            Text("Widget")
                                 .font(.system(size: 10))
                                 .foregroundStyle(Color.floatTextFaint)
                         }
@@ -1951,31 +1962,66 @@ struct AccountEditor: View {
     var accountColor: String
     var account: FloatAccount?
     var canDelete: Bool
+    var isShownInWidget: Bool
+    var currentWidgetAccountName: String?
     var onSave: (String) -> Void
+    var onWidgetVisibilityChange: ((Bool) -> Void)?
     var onDelete: (() -> Void)?
 
     @State private var name: String
+    @State private var showInWidget: Bool
+    @State private var ownsWidgetSelection: Bool
+    @State private var replacementAccountName: String?
     @State private var showDeleteAlert = false
+    @State private var showReplaceWidgetAlert = false
 
     init(
         accountColor: String,
         account: FloatAccount? = nil,
         canDelete: Bool = false,
+        isShownInWidget: Bool = false,
+        currentWidgetAccountName: String? = nil,
         onSave: @escaping (String) -> Void,
+        onWidgetVisibilityChange: ((Bool) -> Void)? = nil,
         onDelete: (() -> Void)? = nil
     ) {
         self.accountColor = accountColor
         self.account = account
         self.canDelete = canDelete
+        self.isShownInWidget = isShownInWidget
+        self.currentWidgetAccountName = currentWidgetAccountName
         self.onSave = onSave
+        self.onWidgetVisibilityChange = onWidgetVisibilityChange
         self.onDelete = onDelete
         _name = State(initialValue: account?.name ?? "")
+        _showInWidget = State(initialValue: isShownInWidget)
+        _ownsWidgetSelection = State(initialValue: isShownInWidget)
+        _replacementAccountName = State(initialValue: currentWidgetAccountName)
     }
 
     var body: some View {
         EditorShell(accountColor: accountColor, title: account == nil ? "New Account" : "Edit Account") {
             labeled("Account name") {
                 FloatTextField(placeholder: "", text: $name)
+            }
+
+            if account != nil {
+                labeled("Widget") {
+                    Toggle(isOn: widgetToggleBinding) {
+                        Text("Show in widget")
+                            .font(.system(size: 14))
+                            .foregroundStyle(Color.floatText)
+                    }
+                    .tint(Color.floatText)
+                    .padding(.horizontal, 12)
+                    .frame(height: 40)
+                    .background(.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.floatBorder, lineWidth: 0.5)
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
             }
 
             HStack(spacing: 10) {
@@ -2005,6 +2051,39 @@ struct AccountEditor: View {
             }
         } message: {
             Text("All balances and transactions under this account will be lost.")
+        }
+        .alert("\(replacementAccountName ?? "Another account") is on", isPresented: $showReplaceWidgetAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Replace") {
+                showInWidget = true
+                ownsWidgetSelection = true
+                replacementAccountName = nil
+                onWidgetVisibilityChange?(true)
+            }
+        } message: {
+            Text("Do you want to replace it?")
+        }
+    }
+
+    private var widgetToggleBinding: Binding<Bool> {
+        Binding {
+            showInWidget
+        } set: { nextValue in
+            guard nextValue else {
+                showInWidget = false
+                ownsWidgetSelection = false
+                onWidgetVisibilityChange?(false)
+                return
+            }
+
+            if ownsWidgetSelection || replacementAccountName == nil {
+                showInWidget = true
+                ownsWidgetSelection = true
+                onWidgetVisibilityChange?(true)
+            } else {
+                showInWidget = false
+                showReplaceWidgetAlert = true
+            }
         }
     }
 }

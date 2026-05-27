@@ -25,12 +25,14 @@ final class BudgetStore: ObservableObject {
         if let data = try? Data(contentsOf: storageURL),
            let decoded = try? JSONDecoder().decode(FloatBudget.self, from: data) {
             budget = decoded
+            cleanWidgetAccountSelection()
             applyDueReserveTransfers()
         } else if let legacyBudget = LegacyBudgetMigration.budgetFromContainerFiles() {
             budget = legacyBudget
             if budget.activeAccount == nil {
                 budget.activeAccountId = budget.accounts[0].id
             }
+            cleanWidgetAccountSelection()
             markRealBudget()
             defaults.set(true, forKey: AppStorageKey.legacyMigrationAttempted)
             save()
@@ -103,12 +105,24 @@ final class BudgetStore: ObservableObject {
         save()
     }
 
+    func setWidgetAccount(id: String?) {
+        if let id, budget.accounts.contains(where: { $0.id == id }) {
+            budget.widgetAccountId = id
+        } else {
+            budget.widgetAccountId = nil
+        }
+        save()
+    }
+
     func deleteAccount(id: String) {
         guard budget.accounts.count > 1 else { return }
 
         budget.accounts.removeAll { $0.id == id }
         if budget.activeAccountId == id {
             budget.activeAccountId = budget.accounts[0].id
+        }
+        if budget.widgetAccountId == id {
+            budget.widgetAccountId = nil
         }
         save()
     }
@@ -479,6 +493,7 @@ final class BudgetStore: ObservableObject {
         if budget.activeAccount == nil {
             budget.activeAccountId = budget.accounts[0].id
         }
+        cleanWidgetAccountSelection()
         markRealBudget()
         lastBackupImportDate = Date()
         defaults.set(lastBackupImportDate, forKey: AppStorageKey.lastBackupImportDate)
@@ -512,6 +527,7 @@ final class BudgetStore: ObservableObject {
         if budget.activeAccount == nil {
             budget.activeAccountId = budget.accounts[0].id
         }
+        cleanWidgetAccountSelection()
         markRealBudget()
         save()
     }
@@ -525,9 +541,18 @@ final class BudgetStore: ObservableObject {
 
     private func save() {
         applyDueReserveTransfers()
+        cleanWidgetAccountSelection()
         updateWidgetSnapshot()
         guard let data = try? JSONEncoder().encode(budget) else { return }
         try? data.write(to: storageURL, options: [.atomic])
+    }
+
+    private func cleanWidgetAccountSelection() {
+        guard let widgetAccountId = budget.widgetAccountId,
+              budget.accounts.contains(where: { $0.id == widgetAccountId }) else {
+            budget.widgetAccountId = nil
+            return
+        }
     }
 
     private func updateWidgetSnapshot() {

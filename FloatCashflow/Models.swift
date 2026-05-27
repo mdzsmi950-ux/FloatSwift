@@ -144,10 +144,16 @@ struct FloatAccount: Codable, Identifiable, Equatable {
 struct FloatBudget: Codable, Equatable {
     var version: Int
     var activeAccountId: String
+    var widgetAccountId: String?
     var accounts: [FloatAccount]
 
     var activeAccount: FloatAccount? {
         accounts.first { $0.id == activeAccountId } ?? accounts.first
+    }
+
+    var widgetAccount: FloatAccount? {
+        guard let widgetAccountId else { return nil }
+        return accounts.first { $0.id == widgetAccountId }
     }
 }
 
