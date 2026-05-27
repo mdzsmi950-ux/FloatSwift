@@ -180,63 +180,72 @@ struct ContentView: View {
     private var bottomNavigation: some View {
         VStack {
             Spacer()
-            HStack(spacing: 0) {
-                bottomTab(
-                    title: "Overview",
-                    icon: "chart.line.uptrend.xyaxis",
-                    isSelected: selectedTab == .overview
-                ) {
-                    selectedTab = .overview
-                }
+            ZStack(alignment: .top) {
+                HStack(spacing: 0) {
+                    bottomTab(
+                        title: "Overview",
+                        icon: "chart.line.uptrend.xyaxis",
+                        isSelected: selectedTab == .overview
+                    ) {
+                        selectedTab = .overview
+                    }
 
-                Divider()
-                    .frame(height: 30)
-                    .opacity(0.45)
+                    Divider()
+                        .frame(height: 30)
+                        .opacity(0.45)
 
-                bottomTab(
-                    title: "Plan",
-                    icon: "list.bullet.rectangle",
-                    isSelected: selectedTab == .plan
-                ) {
-                    selectedTab = .plan
+                    bottomTab(
+                        title: "Plan",
+                        icon: "list.bullet.rectangle",
+                        isSelected: selectedTab == .plan
+                    ) {
+                        selectedTab = .plan
+                    }
+
+                    Spacer()
+                        .frame(width: 74)
+
+                    Divider()
+                        .frame(height: 30)
+                        .opacity(0.45)
+
+                    bottomTab(
+                        title: "Tools",
+                        icon: "wrench.and.screwdriver",
+                        isSelected: selectedTab == .tools
+                    ) {
+                        selectedTab = .tools
+                    }
+
+                    Divider()
+                        .frame(height: 30)
+                        .opacity(0.45)
+
+                    bottomTab(
+                        title: "More",
+                        icon: "ellipsis.circle",
+                        isSelected: selectedTab == .more
+                    ) {
+                        selectedTab = .more
+                    }
                 }
+                .padding(.horizontal, 7)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+                .frame(height: 66)
+                .background(.white.opacity(0.78))
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(.black.opacity(0.08), lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
+                .padding(.top, 28)
 
                 accountSwitchBubble
-
-                Divider()
-                    .frame(height: 30)
-                    .opacity(0.45)
-
-                bottomTab(
-                    title: "Tools",
-                    icon: "wrench.and.screwdriver",
-                    isSelected: selectedTab == .tools
-                ) {
-                    selectedTab = .tools
-                }
-
-                Divider()
-                    .frame(height: 30)
-                    .opacity(0.45)
-
-                bottomTab(
-                    title: "More",
-                    icon: "ellipsis.circle",
-                    isSelected: selectedTab == .more
-                ) {
-                    selectedTab = .more
-                }
+                    .offset(y: -2)
+                    .zIndex(2)
             }
-            .padding(.horizontal, 7)
-            .padding(.top, 7)
-            .padding(.bottom, 8)
-            .background(.white.opacity(0.78))
-            .clipShape(RoundedRectangle(cornerRadius: 20))
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(.black.opacity(0.08), lineWidth: 0.5)
-            )
-            .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
             .padding(.horizontal, 20)
             .padding(.bottom, 14)
         }
@@ -249,24 +258,22 @@ struct ContentView: View {
         } label: {
             VStack(spacing: 3) {
                 Image(systemName: "arrow.triangle.2.circlepath")
-                    .font(.system(size: 17, weight: .semibold))
+                    .font(.system(size: 18, weight: .semibold))
                 Text(store.activeAccount.name)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .lineLimit(1)
                     .minimumScaleFactor(0.68)
             }
             .foregroundStyle(Color.floatText)
-            .frame(width: 62, height: 62)
-            .background(.white.opacity(0.92))
+            .frame(width: 70, height: 70)
+            .background(.white.opacity(0.95))
             .clipShape(Circle())
             .overlay(
                 Circle()
                     .stroke(.black.opacity(0.08), lineWidth: 0.5)
             )
-            .shadow(color: .black.opacity(0.14), radius: 14, y: 6)
-            .offset(y: -18)
-            .padding(.horizontal, 4)
-            .padding(.bottom, -18)
+            .shadow(color: .black.opacity(0.16), radius: 16, y: 7)
+            .contentShape(Circle())
         }
         .buttonStyle(.plain)
     }
