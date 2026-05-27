@@ -94,13 +94,11 @@ struct TodayRecapWidgetView: View {
                 metricCard(label: "Before next income", value: leftBeforeIncomeText)
             }
 
-            statusPanel
-
             VStack(alignment: .leading, spacing: 7) {
                 Text("Next items")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.floatTextFaint)
-                nextItemsList(limit: 5)
+                nextItemsList(limit: 6)
             }
 
             Spacer(minLength: 0)
@@ -128,27 +126,6 @@ struct TodayRecapWidgetView: View {
             .foregroundStyle(snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
-    }
-
-    private var statusPanel: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Status")
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(Color.floatTextFaint)
-            Text(snapshot.isSinking ? "This account is projected to sink \(snapshot.sinkingDate.map(labelDate) ?? "soon")." : "This account is floating.")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
-                .lineLimit(2)
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white.opacity(0.46))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.black.opacity(0.05), lineWidth: 0.5)
-        )
     }
 
     private func metric(label: String, value: String) -> some View {
