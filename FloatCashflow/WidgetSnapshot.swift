@@ -31,12 +31,11 @@ struct FloatWidgetSnapshot: Codable {
     static func make(from budget: FloatBudget) -> FloatWidgetSnapshot {
         let account = budget.activeAccount ?? budget.accounts.first ?? FloatBudget.blank.accounts[0]
         let events = BudgetMath.buildEvents(account: account, cutoff: BudgetMath.cutoff())
-        let recapEvents = BudgetMath.buildEvents(account: account, cutoff: BudgetMath.cutoff(), includeAnchorDate: true)
         let sinkingDate = BudgetMath.sinkingDate(startingBalance: account.currentBalance, events: events)
-        let todayEvents = recapEvents
+        let todayEvents = events
             .filter { $0.date == Date.todayString && $0.label != "Confirmed balance" }
             .sorted(by: widgetSort)
-        let futureEvents = recapEvents
+        let futureEvents = events
             .filter { $0.date > Date.todayString && $0.label != "Confirmed balance" }
             .sorted(by: widgetSort)
         let nextEvent = futureEvents.first

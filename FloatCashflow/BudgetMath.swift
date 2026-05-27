@@ -79,7 +79,7 @@ enum BudgetMath {
         return date
     }
 
-    static func buildEvents(account: FloatAccount, cutoff: String, includeAnchorDate: Bool = false) -> [CashEvent] {
+    static func buildEvents(account: FloatAccount, cutoff: String, includeAnchorDate: Bool = true) -> [CashEvent] {
         var events: [CashEvent] = []
         let startDate = account.lastConfirmedDate ?? Date.todayString
 
