@@ -655,7 +655,7 @@ struct SettingsView: View {
 
                 generalLockRow()
 
-                generalGroup("Backup", helper: "Export a backup to save your current setup. Importing a backup will replace your current accounts, balances, income, bills, debts, reserve, and debt payoff data.") {
+                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, bills, debts, reserve, and debt payoff data.") {
                     HStack(spacing: 8) {
                         SettingsCompactButton(title: "Export Backup") {
                             prepareExport()
