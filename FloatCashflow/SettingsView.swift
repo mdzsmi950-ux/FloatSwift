@@ -1177,7 +1177,7 @@ enum SettingsMode {
         case .tools:
             "Tools"
         case .more:
-            "More"
+            "Settings"
         }
     }
 }

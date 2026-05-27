@@ -222,7 +222,7 @@ struct ContentView: View {
                         .opacity(0.45)
 
                     bottomTab(
-                        title: "More",
+                        title: "Settings",
                         icon: "ellipsis.circle",
                         isSelected: selectedTab == .more
                     ) {
