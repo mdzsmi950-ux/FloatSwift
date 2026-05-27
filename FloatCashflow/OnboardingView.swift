@@ -8,19 +8,33 @@ struct OnboardingView: View {
     private let pages = [
         OnboardingPage(
             title: "Are you floating?",
-            body: "Categories never really helped me. The real question is: will I make it to my next paycheck?"
+            body: [
+                "Categories never really helped me.",
+                "The real question is: will I make it to my next paycheck?"
+            ]
         ),
         OnboardingPage(
             title: "Timeline matters",
-            body: "Enter your paychecks and recurring obligations. Float shows what your balance should look like after each paycheck, bill, and transfer."
+            body: [
+                "Enter your paychecks and recurring obligations.",
+                "Float shows what your balance should look like after each paycheck, bill, and transfer."
+            ]
         ),
         OnboardingPage(
             title: "Let’s see an example",
-            body: "The screen behind this guide shows Maddie and Nick’s sample budget. Use the account name at the top to switch between accounts. The reserve bar shows how much emergency fund has been built and how much is still left to go."
+            body: [
+                "The screen behind this guide shows Maddie and Nick’s sample budget.",
+                "Use the account name at the top to switch between accounts.",
+                "The reserve bar shows how much emergency fund has been built and how much is still left to go."
+            ]
         ),
         OnboardingPage(
             title: "Now check Settings",
-            body: "Settings is where the budget is built. Add accounts, confirm your balance, enter bills, add income, update your reserve, and export or import a backup. When you are done with the demo, tap Next, then tap Let’s Go to erase the sample budget and start your own."
+            body: [
+                "Settings is where the budget is built.",
+                "Add accounts, confirm your balance, enter bills, add income, update your reserve, and export or import a backup.",
+                "When you are done with the demo, tap Next, then tap Let’s Go to erase the sample budget and start your own."
+            ]
         )
     ]
 
@@ -118,11 +132,15 @@ struct OnboardingView: View {
                 }
             }
 
-            Text(pages[pageIndex].body)
-                .font(.system(size: 16))
-                .lineSpacing(4)
-                .foregroundStyle(Color.floatTextMid)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(pages[pageIndex].body, id: \.self) { paragraph in
+                    Text(paragraph)
+                        .font(.system(size: 16))
+                        .lineSpacing(4)
+                        .foregroundStyle(Color.floatTextMid)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
         .contentShape(Rectangle())
         .transaction { transaction in
@@ -157,7 +175,7 @@ struct OnboardingView: View {
 
 private struct OnboardingPage {
     var title: String
-    var body: String
+    var body: [String]
 }
 
 private struct OnboardingButtonStyle: ButtonStyle {
