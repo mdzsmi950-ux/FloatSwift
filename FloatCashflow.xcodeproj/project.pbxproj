@@ -152,6 +152,15 @@
 			path = FloatCashflow;
 			sourceTree = "<group>";
 		};
+		100000000000000000000050 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				100000000000000000000011 /* Float Cashflow.app */,
+				200000000000000000000101 /* FloatCashflowWidget.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		200000000000000000000040 /* FloatCashflowWidget */ = {
 			isa = PBXGroup;
 			children = (
@@ -160,15 +169,6 @@
 				200000000000000000000104 /* Info.plist */,
 			);
 			path = FloatCashflowWidget;
-			sourceTree = "<group>";
-		};
-		100000000000000000000050 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				100000000000000000000011 /* Float Cashflow.app */,
-				200000000000000000000101 /* FloatCashflowWidget.appex */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -364,17 +364,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = FloatCashflow/FloatCashflow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = WX8Q23CB7R;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Float;
 				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
 				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				INFOPLIST_KEY_CFBundleDisplayName = Float;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to unlock Float Cashflow.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				CURRENT_PROJECT_VERSION = 4;
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.maddie.floatapp.v1;
 				PRODUCT_NAME = "Float Cashflow";
@@ -390,17 +391,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = FloatCashflow/FloatCashflow.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = WX8Q23CB7R;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Float;
 				INFOPLIST_KEY_CFBundleShortVersionString = "$(MARKETING_VERSION)";
 				INFOPLIST_KEY_CFBundleVersion = "$(CURRENT_PROJECT_VERSION)";
-				INFOPLIST_KEY_CFBundleDisplayName = Float;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Use Face ID to unlock Float Cashflow.";
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				CURRENT_PROJECT_VERSION = 4;
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.maddie.floatapp.v1;
 				PRODUCT_NAME = "Float Cashflow";
@@ -416,9 +418,10 @@
 				CODE_SIGN_ENTITLEMENTS = FloatCashflowWidget/FloatCashflowWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = WX8Q23CB7R;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_KEY_CFBundleDisplayName = "Float Widgets";
 				INFOPLIST_FILE = FloatCashflowWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Float Widgets";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.maddie.floatapp.v1.widgets;
@@ -436,9 +439,10 @@
 				CODE_SIGN_ENTITLEMENTS = FloatCashflowWidget/FloatCashflowWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
+				DEVELOPMENT_TEAM = WX8Q23CB7R;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_KEY_CFBundleDisplayName = "Float Widgets";
 				INFOPLIST_FILE = FloatCashflowWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Float Widgets";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.maddie.floatapp.v1.widgets;
