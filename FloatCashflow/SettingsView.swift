@@ -5,6 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject private var store: BudgetStore
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    var mode: SettingsMode = .plan
     var goToOverview: () -> Void
     var startOwnBudget: () -> Void
     @ObservedObject var privacyLock: PrivacyLockStore
@@ -95,15 +96,20 @@ struct SettingsView: View {
                 header
 
                 VStack(spacing: Layout.sectionGap) {
-                    setupGuide
-                    accountsSection
-                    balanceSection
-                    incomeSection
-                    billsSection
-                    debtsSection
-                    reserveSection
-                    generalSettingsSection
-                    toolsSection
+                    switch mode {
+                    case .plan:
+                        setupGuide
+                        accountsSection
+                        balanceSection
+                        incomeSection
+                        billsSection
+                        debtsSection
+                        reserveSection
+                    case .tools:
+                        toolsSection
+                    case .more:
+                        generalSettingsSection
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -276,7 +282,7 @@ struct SettingsView: View {
 
     private var header: some View {
         HStack {
-            Text("Settings")
+            Text(mode.title)
                 .font(.system(size: 22, weight: .bold))
                 .foregroundStyle(Color.floatText)
             Spacer()
@@ -1162,6 +1168,23 @@ enum SettingsSection: CaseIterable, Hashable {
     case reserve
     case general
     case tools
+}
+
+enum SettingsMode {
+    case plan
+    case tools
+    case more
+
+    var title: String {
+        switch self {
+        case .plan:
+            "Plan"
+        case .tools:
+            "Tools"
+        case .more:
+            "More"
+        }
+    }
 }
 
 enum PasscodeFlow: Identifiable {

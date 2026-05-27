@@ -31,8 +31,23 @@ struct ContentView: View {
                     OverviewView(startOwnBudget: {
                         showStartOwnBudgetAlert = true
                     })
-                case .settings:
+                case .plan:
                     SettingsView(
+                        mode: .plan,
+                        goToOverview: { selectedTab = .overview },
+                        startOwnBudget: { showStartOwnBudgetAlert = true },
+                        privacyLock: privacyLock
+                    )
+                case .tools:
+                    SettingsView(
+                        mode: .tools,
+                        goToOverview: { selectedTab = .overview },
+                        startOwnBudget: { showStartOwnBudgetAlert = true },
+                        privacyLock: privacyLock
+                    )
+                case .more:
+                    SettingsView(
+                        mode: .more,
                         goToOverview: { selectedTab = .overview },
                         startOwnBudget: { showStartOwnBudgetAlert = true },
                         privacyLock: privacyLock
@@ -116,7 +131,7 @@ struct ContentView: View {
             Button("Cancel", role: .cancel) {}
             Button("Erase Demo", role: .destructive) {
                 store.startOwnBudget()
-                selectedTab = .settings
+                selectedTab = .plan
                 showOnboarding = false
                 NotificationCenter.default.post(name: .floatStartSetup, object: nil)
             }
@@ -175,35 +190,50 @@ struct ContentView: View {
                 }
 
                 Divider()
-                    .frame(height: 34)
+                    .frame(height: 30)
                     .opacity(0.45)
 
                 bottomTab(
-                    title: store.activeAccount.name,
-                    icon: "arrow.triangle.2.circlepath",
-                    isSelected: false
+                    title: "Plan",
+                    icon: "list.bullet.rectangle",
+                    isSelected: selectedTab == .plan
                 ) {
-                    cycleAccount()
+                    selectedTab = .plan
+                }
+
+                accountSwitchBubble
+
+                Divider()
+                    .frame(height: 30)
+                    .opacity(0.45)
+
+                bottomTab(
+                    title: "Tools",
+                    icon: "wrench.and.screwdriver",
+                    isSelected: selectedTab == .tools
+                ) {
+                    selectedTab = .tools
                 }
 
                 Divider()
-                    .frame(height: 34)
+                    .frame(height: 30)
                     .opacity(0.45)
 
                 bottomTab(
-                    title: "Settings",
-                    icon: "gearshape",
-                    isSelected: selectedTab == .settings
+                    title: "More",
+                    icon: "ellipsis.circle",
+                    isSelected: selectedTab == .more
                 ) {
-                    selectedTab = .settings
+                    selectedTab = .more
                 }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 7)
+            .padding(.top, 7)
+            .padding(.bottom, 8)
             .background(.white.opacity(0.78))
-            .clipShape(RoundedRectangle(cornerRadius: 22))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
-                RoundedRectangle(cornerRadius: 22)
+                RoundedRectangle(cornerRadius: 20)
                     .stroke(.black.opacity(0.08), lineWidth: 0.5)
             )
             .shadow(color: .black.opacity(0.12), radius: 18, y: 8)
@@ -213,20 +243,48 @@ struct ContentView: View {
         .zIndex(8)
     }
 
+    private var accountSwitchBubble: some View {
+        Button {
+            cycleAccount()
+        } label: {
+            VStack(spacing: 3) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.system(size: 17, weight: .semibold))
+                Text(store.activeAccount.name)
+                    .font(.system(size: 10, weight: .semibold))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.68)
+            }
+            .foregroundStyle(Color.floatText)
+            .frame(width: 62, height: 62)
+            .background(.white.opacity(0.92))
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(.black.opacity(0.08), lineWidth: 0.5)
+            )
+            .shadow(color: .black.opacity(0.14), radius: 14, y: 6)
+            .offset(y: -18)
+            .padding(.horizontal, 4)
+            .padding(.bottom, -18)
+        }
+        .buttonStyle(.plain)
+    }
+
     private func bottomTab(title: String, icon: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .symbolVariant(isSelected ? .fill : .none)
                 Text(title)
-                    .font(.system(size: 11, weight: isSelected ? .semibold : .medium))
+                    .font(.system(size: 10, weight: isSelected ? .semibold : .medium))
                     .lineLimit(1)
                     .minimumScaleFactor(0.72)
             }
             .foregroundStyle(isSelected ? Color.floatText : Color.floatTextMid)
             .frame(maxWidth: .infinity)
-            .frame(height: 48)
+            .frame(height: 42)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -248,7 +306,9 @@ extension Notification.Name {
 
 private enum AppTab {
     case overview
-    case settings
+    case plan
+    case tools
+    case more
 }
 
 private struct QuickBalanceEditor: View {
