@@ -671,14 +671,14 @@ struct SettingsView: View {
     }
 
     private var generalSettingsSection: some View {
-        settingsCard(title: "General Settings", section: .general) {
-            VStack(alignment: .leading, spacing: showGuidance ? Layout.itemGap : Layout.itemGapWithoutHelper) {
-                guidanceText("Adjust how Float looks, protect your data, and manage backups.")
-
-                generalGroup("Palette", helper: "Choose the color style that feels easiest to read.") {
+        VStack(spacing: Layout.sectionGap) {
+            settingsCard(title: "Palette", section: .palette) {
+                generalGroup("Color style", helper: "Choose the color style that feels easiest to read.") {
                     palettePicker
                 }
+            }
 
+            settingsCard(title: "Helper Text", section: .helperText) {
                 generalToggleRow(
                     title: "Show helper text",
                     helper: "Hide or show the small gray notes throughout Settings.",
@@ -686,10 +686,14 @@ struct SettingsView: View {
                 ) {
                     showGuidance.toggle()
                 }
+            }
 
+            settingsCard(title: "App Lock", section: .appLock) {
                 generalLockRow()
+            }
 
-                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, bills, debts, reserve, and debt payoff data.") {
+            settingsCard(title: "Backup", section: .backup) {
+                generalGroup("Backup file", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, bills, debts, reserve, and debt payoff data.") {
                     HStack(spacing: 8) {
                         SettingsCompactButton(title: "Export Backup") {
                             prepareExport()
@@ -710,7 +714,9 @@ struct SettingsView: View {
                         .foregroundStyle(backupStatusIsReminder ? Color.floatWarning : Color.floatTextFaint)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+            }
 
+            settingsCard(title: "Onboarding", section: .onboarding) {
                 generalNavigationRow(
                     title: "See Onboarding Again",
                     helper: "Review the intro again without changing your current budget."
@@ -718,7 +724,6 @@ struct SettingsView: View {
                     NotificationCenter.default.post(name: .floatReplayOnboarding, object: nil)
                 }
             }
-            .padding(.top, showGuidance ? 0 : 2)
         }
     }
 
@@ -1196,6 +1201,11 @@ enum SettingsSection: CaseIterable, Hashable {
     case debts
     case reserve
     case general
+    case palette
+    case helperText
+    case appLock
+    case backup
+    case onboarding
     case tools
 }
 
