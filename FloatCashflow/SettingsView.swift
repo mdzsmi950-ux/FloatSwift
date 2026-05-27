@@ -968,12 +968,7 @@ struct SettingsView: View {
         .padding(.horizontal, 12)
         .padding(.top, 8)
         .padding(.bottom, expandedSections.contains(section) ? 12 : 8)
-        .background(.white.opacity(0.32))
-        .overlay(
-            RoundedRectangle(cornerRadius: 14)
-                .stroke(.black.opacity(0.045), lineWidth: 0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
         .transaction { transaction in
             transaction.animation = nil
             transaction.disablesAnimations = true

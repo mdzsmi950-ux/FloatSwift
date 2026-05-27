@@ -65,6 +65,19 @@ extension Color {
     static let floatWarning = Color(hex: "C0392B")
 }
 
+extension View {
+    func floatCardSurface(cornerRadius: CGFloat = 18, fillOpacity: Double = 0.84) -> some View {
+        self
+            .background(.white.opacity(fillOpacity))
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .stroke(Color.floatBorder.opacity(0.82), lineWidth: 0.7)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
+            .shadow(color: .black.opacity(0.055), radius: 8, y: 4)
+    }
+}
+
 struct SettingsHeader: View {
     var title: String
     var open: Bool

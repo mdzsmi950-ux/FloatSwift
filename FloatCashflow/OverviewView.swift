@@ -108,8 +108,7 @@ struct OverviewView: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
-        .background(.white.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
     }
 
     private var timeline: some View {
