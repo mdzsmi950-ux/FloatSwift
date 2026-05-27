@@ -110,7 +110,7 @@ struct DebtPayoffView: View {
     }
 
     private var note: some View {
-        Text("Keep monthly debt payments in your Float bills. This tool is only for long-term payoff planning.")
+        Text("Debts from Plan are included in your cash-flow timeline and sync here for payoff planning. Debts added only in this tool are planning-only and will not affect your timeline.")
             .font(.system(size: 12))
             .foregroundStyle(Color.floatTextFaint)
             .lineSpacing(3)
