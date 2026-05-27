@@ -56,7 +56,26 @@ struct OverviewView: View {
     }
 
     private var header: some View {
-        HStack(alignment: .center) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Overview")
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundStyle(Color.floatText)
+
+                Spacer()
+
+                if store.isDemoMode {
+                    Button("Let's Go", action: startOwnBudget)
+                        .buttonStyle(.plain)
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 10)
+                        .frame(height: 34)
+                        .background(Color.floatText)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+
             VStack(alignment: .leading, spacing: 2) {
                 if let sinkingDate {
                     Text("Sinking \(longDate(sinkingDate))!")
@@ -69,20 +88,6 @@ struct OverviewView: View {
             .tracking(0.8)
             .textCase(.uppercase)
             .foregroundStyle(sinkingDate == nil ? Color.floatTextSubtle : Color.floatWarning)
-
-            Spacer()
-
-            if store.isDemoMode {
-                Button("Let's Go", action: startOwnBudget)
-                    .buttonStyle(.plain)
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 10)
-                    .frame(height: 34)
-                    .background(Color.floatText)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-            }
-
         }
     }
 
@@ -258,7 +263,7 @@ struct OverviewView: View {
             pay: CashEvent(
                 id: "starting-balance",
                 type: .income,
-                label: account.balanceIsConfirmed ? "Confirmed balance" : "Current balance",
+                label: "Cash balance",
                 amount: account.currentBalance,
                 date: account.lastConfirmedDate ?? Date.todayString
             ),
