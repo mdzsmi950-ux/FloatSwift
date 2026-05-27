@@ -78,6 +78,16 @@ extension View {
     }
 }
 
+extension UIApplication {
+    static func dismissKeyboard() {
+#if WIDGET_EXTENSION
+        return
+#else
+        shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+#endif
+    }
+}
+
 struct SettingsHeader: View {
     var title: String
     var open: Bool
@@ -126,7 +136,12 @@ struct FloatButton: View {
     var action: () -> Void
 
     var body: some View {
-        Button(title, action: action)
+        Button {
+            UIApplication.dismissKeyboard()
+            action()
+        } label: {
+            Text(title)
+        }
             .buttonStyle(.plain)
             .font(.system(size: 13))
             .foregroundStyle(Color.floatText)

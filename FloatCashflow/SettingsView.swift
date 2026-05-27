@@ -400,7 +400,12 @@ struct SettingsView: View {
     }
 
     private func setupActionButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(title, action: action)
+        Button {
+            UIApplication.dismissKeyboard()
+            action()
+        } label: {
+            Text(title)
+        }
             .buttonStyle(.plain)
             .font(.system(size: 12, weight: .semibold))
             .foregroundStyle(Color.floatText)
@@ -2047,7 +2052,12 @@ struct SheetActionButton: View {
     var action: () -> Void
 
     var body: some View {
-        Button(title, action: action)
+        Button {
+            UIApplication.dismissKeyboard()
+            action()
+        } label: {
+            Text(title)
+        }
             .buttonStyle(.plain)
             .font(.system(size: 14, weight: .semibold))
             .foregroundStyle(Color.floatText)

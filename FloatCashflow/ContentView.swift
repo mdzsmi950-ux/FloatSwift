@@ -356,11 +356,13 @@ private struct QuickBalanceEditor: View {
 
             HStack(spacing: 10) {
                 Button("Cancel") {
+                    UIApplication.dismissKeyboard()
                     onCancel()
                 }
                 .buttonStyle(QuickBalanceButtonStyle(fill: .secondary))
 
                 Button("Confirm") {
+                    UIApplication.dismissKeyboard()
                     guard let amount = Double(amountText) else { return }
                     onConfirm(amount)
                 }
