@@ -230,9 +230,9 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal, 7)
-                .padding(.top, 8)
-                .padding(.bottom, 8)
-                .frame(height: 66)
+                .padding(.top, 5)
+                .padding(.bottom, 5)
+                .frame(height: 54)
                 .background(.white.opacity(0.78))
                 .clipShape(RoundedRectangle(cornerRadius: 20))
                 .overlay(
@@ -243,7 +243,7 @@ struct ContentView: View {
                 .padding(.top, 28)
 
                 accountSwitchBubble
-                    .offset(y: 26)
+                    .offset(y: 20)
                     .zIndex(2)
             }
             .padding(.horizontal, 20)
