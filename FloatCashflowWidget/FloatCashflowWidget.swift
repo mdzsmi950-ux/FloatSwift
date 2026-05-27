@@ -26,75 +26,226 @@ struct TodayRecapWidgetView: View {
     @Environment(\.widgetFamily) private var family
     var entry: FloatWidgetEntry
 
+    private var snapshot: FloatWidgetSnapshot {
+        entry.snapshot
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: family == .systemSmall ? 7 : 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Today Recap")
-                    .font(.system(size: family == .systemSmall ? 12 : 14, weight: .semibold))
-                    .foregroundStyle(Color.floatText)
-                Spacer()
-                if family != .systemSmall {
-                    Text(entry.snapshot.accountName)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.floatTextFaint)
-                        .lineLimit(1)
-                }
-            }
-
-            Text(entry.snapshot.todayTitle)
-                .font(.system(size: family == .systemSmall ? 17 : 20, weight: .bold))
-                .foregroundStyle(Color.floatText)
-                .lineLimit(2)
-
-            Text(entry.snapshot.todayDetail)
-                .font(.system(size: family == .systemSmall ? 12 : 13, weight: .medium))
-                .foregroundStyle(Color.floatTextMid)
-                .lineLimit(2)
-
-            if family == .systemSmall {
-                Spacer(minLength: 0)
-            } else {
-                if !entry.snapshot.todayItems.isEmpty {
-                    eventList(limit: 3)
-                }
-                Spacer(minLength: 0)
-                statusFooter
+        Group {
+            switch family {
+            case .systemSmall:
+                smallStatusView
+            case .systemMedium:
+                mediumStatusView
+            default:
+                largeStatusView
             }
         }
         .widgetCardBackground()
     }
 
-    private var statusFooter: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Divider()
-                .opacity(0.35)
-            Text(entry.snapshot.nextDetail)
+    private var smallStatusView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Float")
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(entry.snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
+                .foregroundStyle(Color.floatTextFaint)
+
+            Spacer(minLength: 0)
+
+            Text(snapshot.globalIsSinking ? "Sinking" : "Floating")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(snapshot.globalIsSinking ? Color.floatDanger : Color.floatAccent)
+                .lineLimit(1)
+                .minimumScaleFactor(0.72)
+
+            Text(smallStatusDetail)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.floatTextMid)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var mediumStatusView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            widgetHeader
+
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 6) {
+                    statusText
+                    metric(label: "Cash balance", value: money(snapshot.cashBalance))
+                    metric(label: "Before income", value: leftBeforeIncomeText)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Next")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Color.floatTextFaint)
+                    nextItemsList(limit: 2)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var largeStatusView: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            widgetHeader
+
+            HStack(alignment: .top, spacing: 10) {
+                metricCard(label: "Cash balance", value: money(snapshot.cashBalance))
+                metricCard(label: "Before next income", value: leftBeforeIncomeText)
+            }
+
+            statusPanel
+
+            VStack(alignment: .leading, spacing: 7) {
+                Text("Next items")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Color.floatTextFaint)
+                nextItemsList(limit: 5)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var widgetHeader: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(snapshot.accountName)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.floatText)
+                .lineLimit(1)
+            Spacer()
+            Text(snapshot.globalIsSinking ? "Needs attention" : "All floating")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(snapshot.globalIsSinking ? Color.floatDanger : Color.floatAccent)
                 .lineLimit(1)
         }
     }
 
-    private func eventList(limit: Int) -> some View {
-        VStack(spacing: 7) {
-            ForEach(entry.snapshot.todayItems.prefix(limit)) { item in
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(item.isIncome ? Color.floatAccent : Color.floatTextSubtle)
-                        .frame(width: 6, height: 6)
-                    Text(item.title)
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Color.floatText)
-                        .lineLimit(1)
-                    Spacer(minLength: 6)
-                    Text("\(item.isIncome ? "+" : "-")\(money(item.amount))")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(item.isIncome ? Color.floatAccent : Color.floatTextMid)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+    private var statusText: some View {
+        Text(snapshot.isSinking ? "Sinking \(snapshot.sinkingDate.map(labelDate) ?? "soon")" : "Floating")
+            .font(.system(size: 18, weight: .bold))
+            .foregroundStyle(snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+    }
+
+    private var statusPanel: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Status")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.floatTextFaint)
+            Text(snapshot.isSinking ? "This account is projected to sink \(snapshot.sinkingDate.map(labelDate) ?? "soon")." : "This account is floating.")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
+                .lineLimit(2)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.46))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.black.opacity(0.05), lineWidth: 0.5)
+        )
+    }
+
+    private func metric(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Color.floatTextFaint)
+                .lineLimit(1)
+            Text(value)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.floatText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+    }
+
+    private func metricCard(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Color.floatTextFaint)
+                .lineLimit(1)
+            Text(value)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundStyle(Color.floatText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white.opacity(0.46))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.black.opacity(0.05), lineWidth: 0.5)
+        )
+    }
+
+    @ViewBuilder
+    private func nextItemsList(limit: Int) -> some View {
+        let items = Array(snapshot.nextItems.prefix(limit))
+        if items.isEmpty {
+            Text("Nothing scheduled soon.")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.floatTextMid)
+                .lineLimit(2)
+        } else {
+            VStack(spacing: family == .systemMedium ? 5 : 6) {
+                ForEach(items) { item in
+                    HStack(spacing: 7) {
+                        Text(labelDate(item.date))
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(Color.floatTextFaint)
+                            .frame(width: family == .systemMedium ? 32 : 38, alignment: .leading)
+                        Text(item.title)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color.floatText)
+                            .lineLimit(1)
+                        Spacer(minLength: 4)
+                        Text("\(item.isIncome ? "+" : "-")\(money(item.amount))")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(item.isIncome ? Color.floatAccent : Color.floatTextMid)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
                 }
             }
         }
+    }
+
+    private var smallStatusDetail: String {
+        if snapshot.globalIsSinking {
+            let account = snapshot.globalSinkingAccountName ?? "Account"
+            if let date = snapshot.globalSinkingDate {
+                return "\(account) sinks \(labelDate(date))"
+            }
+            return "\(account) needs attention"
+        }
+        return "All accounts are okay."
+    }
+
+    private var leftBeforeIncomeText: String {
+        guard let left = snapshot.leftBeforeNextIncome else {
+            return "No income scheduled"
+        }
+        return money(left)
     }
 }
 
@@ -105,9 +256,9 @@ struct TodayRecapWidget: Widget {
         StaticConfiguration(kind: kind, provider: FloatWidgetProvider()) { entry in
             TodayRecapWidgetView(entry: entry)
         }
-        .configurationDisplayName("Today Recap")
-        .description("See what is due or arriving today.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .configurationDisplayName("Float Status")
+        .description("See whether your cash-flow timeline is floating or sinking.")
+        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }
 
