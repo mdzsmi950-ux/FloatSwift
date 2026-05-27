@@ -61,18 +61,20 @@ enum SetupStep {
     case obligation
     case overview
 
-    static let totalSteps = 4
+    static let totalSteps = 5
 
     var number: Int {
         switch self {
-        case .account, .balance:
+        case .account:
             return 1
-        case .income:
+        case .balance:
             return 2
-        case .obligation:
+        case .income:
             return 3
-        case .overview:
+        case .obligation:
             return 4
+        case .overview:
+            return 5
         }
     }
 

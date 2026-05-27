@@ -314,7 +314,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .firstTextBaseline) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("First Setup")
+                        Text("Set Up Your Budget")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(Color.floatText)
                             .tracking(0.8)

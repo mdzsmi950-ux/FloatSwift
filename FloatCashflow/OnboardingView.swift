@@ -17,7 +17,7 @@ struct OnboardingView: View {
             title: "Timeline matters",
             body: [
                 "Enter your paychecks and recurring obligations.",
-                "Float shows what your balance should look like after each paycheck, bill, and transfer."
+                "Float shows what your balance should look like after each paycheck and bill."
             ]
         ),
         OnboardingPage(
@@ -33,7 +33,7 @@ struct OnboardingView: View {
             body: [
                 "Settings is where the budget is built.",
                 "Add accounts, confirm your balance, enter bills, add income, update your reserve, and export or import a backup.",
-                "When you are done with the demo, tap Next, then tap Let’s Go to erase the sample budget and start your own."
+                "When you are done with the demo, tap Explore Demo, then tap Let’s Go to erase the sample budget and start your own."
             ]
         )
     ]
@@ -91,7 +91,7 @@ struct OnboardingView: View {
                         .frame(width: 92)
                 }
 
-                Button(isLastPage ? "Done" : "Next") {
+                Button(isLastPage ? "Explore Demo" : "Next") {
                     goNext(allowFinish: true)
                 }
                     .buttonStyle(OnboardingButtonStyle(kind: .primary))
