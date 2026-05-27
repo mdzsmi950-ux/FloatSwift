@@ -103,16 +103,6 @@ final class BudgetStore: ObservableObject {
         save()
     }
 
-    func updateAccount(id: String, name: String, cashBalance: Double) {
-        guard let index = budget.accounts.firstIndex(where: { $0.id == id }) else { return }
-        budget.accounts[index].name = name
-        budget.accounts[index].currentBalance = cashBalance
-        budget.accounts[index].lastConfirmedDate = Date.todayString
-        budget.accounts[index].balanceIsConfirmed = true
-        budget.accounts[index].income.removeAll { $0.label == "Confirmed balance" }
-        save()
-    }
-
     func deleteAccount(id: String) {
         guard budget.accounts.count > 1 else { return }
 
@@ -454,7 +444,8 @@ final class BudgetStore: ObservableObject {
         save()
     }
 
-    func importBackup(from url: URL) throws {
+    @discardableResult
+    func importBackup(from url: URL) throws -> DebtPayoffLedger? {
         let shouldStopAccessing = url.startAccessingSecurityScopedResource()
         defer {
             if shouldStopAccessing {
@@ -463,11 +454,23 @@ final class BudgetStore: ObservableObject {
         }
 
         let data = try Data(contentsOf: url)
-        try importBackup(data: data)
+        return try importBackup(data: data)
     }
 
-    func importBackup(data: Data) throws {
-        let imported = try JSONDecoder().decode(FloatBudget.self, from: data)
+    @discardableResult
+    func importBackup(data: Data) throws -> DebtPayoffLedger? {
+        let decoder = JSONDecoder()
+        if let payload = try? decoder.decode(FloatBackupPayload.self, from: data) {
+            try replaceBudget(with: payload.budget)
+            return payload.debtPayoff ?? DebtPayoffLedger()
+        }
+
+        let imported = try decoder.decode(FloatBudget.self, from: data)
+        try replaceBudget(with: imported)
+        return nil
+    }
+
+    private func replaceBudget(with imported: FloatBudget) throws {
         guard imported.version == 1, !imported.accounts.isEmpty else {
             throw ImportError.invalidBackup
         }

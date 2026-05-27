@@ -238,7 +238,9 @@ struct SettingsView: View {
             Button("Import", role: .destructive) {
                 do {
                     if let pendingImportData {
-                        try importBackup(data: pendingImportData)
+                        if let debtPayoff = try store.importBackup(data: pendingImportData) {
+                            debtPayoffStore.replaceLedger(debtPayoff)
+                        }
                         importMessage = "Backup imported."
                     }
                 } catch {
@@ -1064,87 +1066,6 @@ struct SettingsView: View {
         }
     }
 
-    private struct SettingsToggleRow: View {
-        var title: String
-        @Binding var isOn: Bool
-        var highContrast: Bool
-        var differentiateWithoutColor: Bool
-
-        var body: some View {
-            Button {
-                isOn.toggle()
-            } label: {
-                HStack(spacing: 10) {
-                    Text(title)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(Color.floatText)
-
-                    Spacer()
-
-                    SettingsSwitch(
-                        isOn: isOn,
-                        highContrast: highContrast,
-                        differentiateWithoutColor: differentiateWithoutColor
-                    )
-                }
-                .frame(height: 24)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(title)
-            .accessibilityValue(isOn ? "On" : "Off")
-            .accessibilityAddTraits(.isButton)
-        }
-    }
-
-    private struct SettingsToggleButton: View {
-        var title: String
-        var isOn: Bool
-        var highContrast: Bool
-        var differentiateWithoutColor: Bool
-        var action: () -> Void
-
-        var body: some View {
-            Button(action: action) {
-                SettingsToggleContent(
-                    title: title,
-                    isOn: isOn,
-                    highContrast: highContrast,
-                    differentiateWithoutColor: differentiateWithoutColor
-                )
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(title)
-            .accessibilityValue(isOn ? "On" : "Off")
-            .accessibilityAddTraits(.isButton)
-        }
-    }
-
-    private struct SettingsToggleContent: View {
-        var title: String
-        var isOn: Bool
-        var highContrast: Bool
-        var differentiateWithoutColor: Bool
-
-        var body: some View {
-            HStack(spacing: 10) {
-                Text(title)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundStyle(Color.floatText)
-
-                Spacer()
-
-                SettingsSwitch(
-                    isOn: isOn,
-                    highContrast: highContrast,
-                    differentiateWithoutColor: differentiateWithoutColor
-                )
-            }
-            .frame(height: 24)
-            .contentShape(Rectangle())
-        }
-    }
-
     private func itemRow(title: String, subtitle: String, amount: String, edit: @escaping () -> Void) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
@@ -1224,17 +1145,6 @@ struct SettingsView: View {
         }
     }
 
-    private func importBackup(data: Data) throws {
-        let decoder = JSONDecoder()
-        if let payload = try? decoder.decode(FloatBackupPayload.self, from: data) {
-            let budgetData = try JSONEncoder().encode(payload.budget)
-            try store.importBackup(data: budgetData)
-            debtPayoffStore.replaceLedger(payload.debtPayoff ?? DebtPayoffLedger())
-            return
-        }
-
-        try store.importBackup(data: data)
-    }
 }
 
 enum SettingsSection: CaseIterable, Hashable {
