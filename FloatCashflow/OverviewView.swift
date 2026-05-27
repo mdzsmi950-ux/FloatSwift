@@ -22,6 +22,10 @@ struct OverviewView: View {
         BudgetMath.reservePercent(account)
     }
 
+    private var hasIncome: Bool {
+        account.income.contains { $0.active && $0.label != "Confirmed balance" }
+    }
+
     private var dateColumnWidth: CGFloat {
         max(34, measuredDateColumnWidth)
     }
@@ -36,7 +40,11 @@ struct OverviewView: View {
                 VStack(spacing: 16) {
                     header
                     reserveCard
-                    timeline
+                    if hasIncome {
+                        timeline
+                    } else {
+                        noIncomeState
+                    }
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, 20)
@@ -77,7 +85,9 @@ struct OverviewView: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                if let sinkingDate {
+                if !hasIncome {
+                    Text("Add income to start")
+                } else if let sinkingDate {
                     Text("Sinking \(longDate(sinkingDate))!")
                     Text("Cut Back Spending Now!")
                 } else {
@@ -87,8 +97,15 @@ struct OverviewView: View {
             .font(.system(size: 13, weight: .bold))
             .tracking(0.8)
             .textCase(.uppercase)
-            .foregroundStyle(sinkingDate == nil ? Color.floatTextSubtle : Color.floatWarning)
+            .foregroundStyle(headerStatusColor)
         }
+    }
+
+    private var headerStatusColor: Color {
+        if !hasIncome {
+            return Color.floatTextSubtle
+        }
+        return sinkingDate == nil ? Color.floatTextSubtle : Color.floatWarning
     }
 
     private var reserveCard: some View {
@@ -114,6 +131,44 @@ struct OverviewView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
+    }
+
+    private var noIncomeState: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("No income added yet")
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundStyle(Color.floatText)
+
+            Text("Add your paycheck or other regular income in Plan. Then Float can show what happens before and after money comes in.")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(Color.floatTextMid)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+
+            VStack(alignment: .leading, spacing: 6) {
+                noIncomeHintRow("Cash balance is only the starting point.")
+                noIncomeHintRow("Income gives the timeline its next refill.")
+                noIncomeHintRow("Bills and cards make more sense after that.")
+            }
+            .padding(.top, 2)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 14)
+        .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
+    }
+
+    private func noIncomeHintRow(_ text: String) -> some View {
+        HStack(alignment: .top, spacing: 7) {
+            Circle()
+                .fill(Color.floatTextFaint.opacity(0.48))
+                .frame(width: 5, height: 5)
+                .padding(.top, 6)
+            Text(text)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.floatTextFaint)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     private var timeline: some View {
