@@ -45,24 +45,14 @@ struct TodayRecapWidgetView: View {
     }
 
     private var smallStatusView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Float")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.floatTextFaint)
-
+        VStack(alignment: .leading, spacing: 0) {
             Spacer(minLength: 0)
 
             Text(snapshot.globalIsSinking ? "Sinking" : "Floating")
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: 28, weight: .bold))
                 .foregroundStyle(snapshot.globalIsSinking ? Color.floatDanger : Color.floatAccent)
                 .lineLimit(1)
-                .minimumScaleFactor(0.72)
-
-            Text(smallStatusDetail)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(Color.floatTextMid)
-                .lineLimit(2)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.68)
 
             Spacer(minLength: 0)
         }
@@ -228,17 +218,6 @@ struct TodayRecapWidgetView: View {
                 }
             }
         }
-    }
-
-    private var smallStatusDetail: String {
-        if snapshot.globalIsSinking {
-            let account = snapshot.globalSinkingAccountName ?? "Account"
-            if let date = snapshot.globalSinkingDate {
-                return "\(account) sinks \(labelDate(date))"
-            }
-            return "\(account) needs attention"
-        }
-        return "All accounts are okay."
     }
 
     private var leftBeforeIncomeText: String {
