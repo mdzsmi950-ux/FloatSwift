@@ -64,20 +64,17 @@ struct TodayRecapWidgetView: View {
             widgetHeader
 
             HStack(alignment: .top, spacing: 12) {
-                VStack(alignment: .leading, spacing: 6) {
-                    statusText
-                    metric(label: "Cash balance", value: money(snapshot.cashBalance))
-                    metric(label: "Before income", value: leftBeforeIncomeText)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                metric(label: "Cash balance", value: money(snapshot.cashBalance))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                metric(label: "Before income", value: leftBeforeIncomeText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Next")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(Color.floatTextFaint)
-                    nextItemsList(limit: 2)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Next")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Color.floatTextFaint)
+                nextItemsList(limit: 3)
             }
 
             Spacer(minLength: 0)
@@ -86,7 +83,7 @@ struct TodayRecapWidgetView: View {
     }
 
     private var largeStatusView: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 9) {
             widgetHeader
 
             HStack(alignment: .top, spacing: 10) {
@@ -94,11 +91,11 @@ struct TodayRecapWidgetView: View {
                 metricCard(label: "Before next income", value: leftBeforeIncomeText)
             }
 
-            VStack(alignment: .leading, spacing: 7) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("Next items")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Color.floatTextFaint)
-                nextItemsList(limit: 6)
+                nextItemsList(limit: 10)
             }
 
             Spacer(minLength: 0)
@@ -120,14 +117,6 @@ struct TodayRecapWidgetView: View {
         }
     }
 
-    private var statusText: some View {
-        Text(snapshot.isSinking ? "Sinking \(snapshot.sinkingDate.map(labelDate) ?? "soon")" : "Floating")
-            .font(.system(size: 18, weight: .bold))
-            .foregroundStyle(snapshot.isSinking ? Color.floatDanger : Color.floatAccent)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
-    }
-
     private func metric(label: String, value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
@@ -135,10 +124,10 @@ struct TodayRecapWidgetView: View {
                 .foregroundStyle(Color.floatTextFaint)
                 .lineLimit(1)
             Text(value)
-                .font(.system(size: 14, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.floatText)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.78)
         }
     }
 
@@ -174,23 +163,24 @@ struct TodayRecapWidgetView: View {
                 .foregroundStyle(Color.floatTextMid)
                 .lineLimit(2)
         } else {
-            VStack(spacing: family == .systemMedium ? 5 : 6) {
+            VStack(spacing: family == .systemMedium ? 4 : 5) {
                 ForEach(items) { item in
                     HStack(spacing: 7) {
                         Text(labelDate(item.date))
                             .font(.system(size: 11, weight: .medium))
                             .foregroundStyle(Color.floatTextFaint)
-                            .frame(width: family == .systemMedium ? 32 : 38, alignment: .leading)
+                            .frame(width: family == .systemMedium ? 34 : 38, alignment: .leading)
                         Text(item.title)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(Color.floatText)
                             .lineLimit(1)
+                            .minimumScaleFactor(0.82)
                         Spacer(minLength: 4)
                         Text("\(item.isIncome ? "+" : "-")\(money(item.amount))")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundStyle(item.isIncome ? Color.floatAccent : Color.floatTextMid)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.75)
+                            .minimumScaleFactor(0.72)
                     }
                 }
             }
