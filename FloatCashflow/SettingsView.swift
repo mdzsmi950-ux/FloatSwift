@@ -106,7 +106,7 @@ struct SettingsView: View {
         }
 
         if account.bills.isEmpty {
-            return .obligation
+            return .outgoingPayment
         }
 
         return .overview
@@ -360,7 +360,7 @@ struct SettingsView: View {
                     expandedSections.insert(.inItems)
                     activeSheet = .newIncome
                 }
-            case .obligation:
+            case .outgoingPayment:
                 setupActionButton("Add Out") {
                     expandedSections.insert(.outItems)
                     activeSheet = .newBill
@@ -1256,7 +1256,7 @@ struct SettingsView: View {
             expandedSections.insert(.balance)
         case .income:
             expandedSections.insert(.inItems)
-        case .obligation:
+        case .outgoingPayment:
             expandedSections.insert(.outItems)
         case .overview:
             break

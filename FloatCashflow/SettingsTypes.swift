@@ -52,7 +52,7 @@ enum SetupStep {
     case account
     case balance
     case income
-    case obligation
+    case outgoingPayment
     case overview
 
     static let totalSteps = 5
@@ -65,7 +65,7 @@ enum SetupStep {
             return 2
         case .income:
             return 3
-        case .obligation:
+        case .outgoingPayment:
             return 4
         case .overview:
             return 5
@@ -80,7 +80,7 @@ enum SetupStep {
             return "Confirm your cash balance"
         case .income:
             return "Add your next In"
-        case .obligation:
+        case .outgoingPayment:
             return "Add an outgoing payment"
         case .overview:
             return "Check your first Overview"
@@ -95,7 +95,7 @@ enum SetupStep {
             return "Enter the money available for Out items and regular payments. Leave out savings and emergency reserves."
         case .income:
             return "Add money coming in. This gives Float the rhythm of when your cash refills."
-        case .obligation:
+        case .outgoingPayment:
             return "Add one outgoing payment. Bills, cards, debts, transfers, or other outgoing payments are enough to make Overview useful."
         case .overview:
             return "Your first Overview is ready. Go back to Overview to see whether this account is floating or sinking."

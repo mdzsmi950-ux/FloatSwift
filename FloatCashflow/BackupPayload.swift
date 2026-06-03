@@ -51,6 +51,7 @@ private struct LegacyDebtPayoffData: Decodable {
     enum CodingKeys: String, CodingKey {
         case items
         case debts
+        case debtPayoff
         case debtPayoffItems
         case debtPayoffLedger
     }
@@ -60,6 +61,7 @@ private struct LegacyDebtPayoffData: Decodable {
         items = []
         items += (try? container.decode([DebtOverviewItem].self, forKey: .items)) ?? []
         items += (try? container.decode([DebtOverviewItem].self, forKey: .debts)) ?? []
+        items += (try? container.decode([DebtOverviewItem].self, forKey: .debtPayoff)) ?? []
         items += (try? container.decode([DebtOverviewItem].self, forKey: .debtPayoffItems)) ?? []
         items += (try? container.decode([DebtOverviewItem].self, forKey: .debtPayoffLedger)) ?? []
     }
