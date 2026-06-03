@@ -75,30 +75,30 @@ enum SetupStep {
     var title: String {
         switch self {
         case .account:
-            return "Name the account you use most"
+            return "Name your first account"
         case .balance:
             return "Confirm your cash balance"
         case .income:
-            return "Add your next In"
+            return "Add money coming in"
         case .outgoingPayment:
             return "Add an outgoing payment"
         case .overview:
-            return "Check your first Overview"
+            return "Check your first timeline"
         }
     }
 
     var message: String {
         switch self {
         case .account:
-            return "Start with the account you actually use for Out items. You can keep the default name or edit it now."
+            return "You can keep the default name or change it."
         case .balance:
-            return "Enter the money available for Out items and regular payments. Leave out savings and emergency reserves."
+            return "Enter the cash balance you want Float to start from. Leave out savings and emergency reserves."
         case .income:
             return "Add money coming in. This gives Float the rhythm of when your cash refills."
         case .outgoingPayment:
             return "Add one outgoing payment. Bills, cards, debts, transfers, or other outgoing payments are enough to make Overview useful."
         case .overview:
-            return "Your first Overview is ready. Go back to Overview to see whether this account is floating or sinking."
+            return "Your first timeline is ready. Go back to Overview to see whether this account is floating or sinking."
         }
     }
 }

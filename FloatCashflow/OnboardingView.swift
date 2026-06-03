@@ -19,7 +19,7 @@ struct OnboardingView: View {
             title: "Timing matters",
             body: [
                 "Enter your income and outgoing payments.",
-                "Float shows what your balance should look like after each In item and Out item."
+                "Float shows what your balance should look like after money comes in and payments go out."
             ]
         ),
         OnboardingPage(

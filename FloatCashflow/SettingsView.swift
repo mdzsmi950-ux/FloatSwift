@@ -646,7 +646,7 @@ struct SettingsView: View {
     private var accountsSection: some View {
         settingsCard(title: "Accounts", section: .accounts) {
             VStack(spacing: 2) {
-                guidanceText("Add the account you use for Out items and enter its cash balance. Tap a name to view and edit that account.")
+                guidanceText("Add another account to track. Tap a name to view or edit it.")
                 VStack(spacing: 2) {
                     ForEach(Array(store.budget.accounts.enumerated()), id: \.element.id) { index, item in
                         accountRow(item, index: index)
