@@ -8,6 +8,7 @@ struct FloatBackupPayload: Codable {
         case version
         case budget
         case debts
+        case debtPayoff
         case debtPayoffData
         case debtPayoffItems
         case debtPayoffLedger
@@ -25,8 +26,10 @@ struct FloatBackupPayload: Codable {
         var legacyDebts = [DebtOverviewItem]()
         legacyDebts += (try? container.decode([DebtOverviewItem].self, forKey: .debtPayoffItems)) ?? []
         legacyDebts += (try? container.decode([DebtOverviewItem].self, forKey: .debts)) ?? []
+        legacyDebts += (try? container.decode([DebtOverviewItem].self, forKey: .debtPayoff)) ?? []
         legacyDebts += (try? container.decode([DebtOverviewItem].self, forKey: .debtPayoffLedger)) ?? []
         legacyDebts += (try? container.decode([DebtOverviewItem].self, forKey: .debtPayoffData)) ?? []
+        legacyDebts += (try? container.decode(LegacyDebtPayoffData.self, forKey: .debtPayoff))?.items ?? []
         legacyDebts += (try? container.decode(LegacyDebtPayoffData.self, forKey: .debtPayoffData))?.items ?? []
         legacyDebts += (try? container.decode(LegacyDebtPayoffData.self, forKey: .debtPayoffLedger))?.items ?? []
 
