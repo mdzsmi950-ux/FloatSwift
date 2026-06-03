@@ -215,7 +215,7 @@ struct OverviewView: View {
             } amount: {
                 payAmountText(for: group)
             }
-            .padding(.bottom, group.bills.isEmpty && !showEndingBalance ? 0 : TimelineSpacing.rowGap)
+            .padding(.bottom, group.bills.isEmpty ? 0 : TimelineSpacing.rowGap)
 
             ForEach(Array(group.bills.enumerated()), id: \.element.id) { index, bill in
                 rowGrid {
