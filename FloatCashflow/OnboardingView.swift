@@ -26,7 +26,7 @@ struct OnboardingView: View {
             title: "Let’s see an example",
             body: [
                 "The screen behind this guide shows Maddie and Nick’s sample budget.",
-                "Use the account name at the top to switch between accounts.",
+                "Use the account switcher in the bottom bar to switch between accounts.",
                 "The reserve bar shows how much emergency fund has been built and how much is still left to go."
             ]
         ),

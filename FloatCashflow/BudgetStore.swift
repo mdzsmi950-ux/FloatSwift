@@ -26,6 +26,9 @@ final class BudgetStore: ObservableObject {
            let decoded = try? JSONDecoder().decode(FloatBudget.self, from: data) {
             budget = decoded
             cleanWidgetAccountSelection()
+            if !budgetLooksLikeDemo(decoded) {
+                markRealBudget()
+            }
         } else if let legacyBudget = LegacyBudgetMigration.budgetFromContainerFiles() {
             budget = legacyBudget
             if budget.activeAccount == nil {
@@ -55,6 +58,10 @@ final class BudgetStore: ObservableObject {
 
     var activeAccount: FloatAccount {
         budget.activeAccount ?? FloatBudget.blank.accounts[0]
+    }
+
+    var shouldShowAutomaticOnboarding: Bool {
+        isDemoMode && !defaults.bool(forKey: AppStorageKey.onboardingComplete)
     }
 
     func setActiveAccount(_ id: String) {
@@ -322,6 +329,13 @@ final class BudgetStore: ObservableObject {
         defaults.set(false, forKey: AppStorageKey.demoMode)
         defaults.set(true, forKey: AppStorageKey.demoWasEnded)
         defaults.set(true, forKey: AppStorageKey.onboardingComplete)
+    }
+
+    private func budgetLooksLikeDemo(_ budget: FloatBudget) -> Bool {
+        budget.accounts.contains { account in
+            account.bills.contains { $0.id.contains("-demo-") } ||
+                account.income.contains { $0.id.contains("-demo-") }
+        }
     }
 
     private func save() {

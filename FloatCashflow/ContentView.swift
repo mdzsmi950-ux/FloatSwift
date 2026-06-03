@@ -6,9 +6,7 @@ struct ContentView: View {
     @StateObject private var privacyLock = PrivacyLockStore()
     @StateObject private var quickActions = QuickActionManager.shared
     @State private var selectedTab: AppTab = .overview
-    @State private var showOnboarding =
-        !UserDefaults.standard.bool(forKey: AppStorageKey.onboardingComplete) ||
-        UserDefaults.standard.bool(forKey: AppStorageKey.demoMode)
+    @State private var showOnboarding = false
     @State private var showStartOwnBudgetAlert = false
     @State private var quickBalanceAccountId: String?
 
@@ -64,9 +62,10 @@ struct ContentView: View {
                         store.finishOnboarding()
                         showOnboarding = false
                     }
+                    .padding(.bottom, 86)
                 }
                 .transition(.opacity)
-                .zIndex(10)
+                .zIndex(7)
             }
 
             if store.needsLegacyWebMigration {
@@ -105,8 +104,14 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            showOnboarding = store.shouldShowAutomaticOnboarding
             quickActions.updateShortcutItems(for: store.budget)
             consumePendingQuickAction()
+        }
+        .onChange(of: store.isDemoMode) {
+            if !store.isDemoMode {
+                showOnboarding = false
+            }
         }
         .onChange(of: store.budget) {
             quickActions.updateShortcutItems(for: store.budget)
