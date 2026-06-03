@@ -4,15 +4,10 @@ import UniformTypeIdentifiers
 enum SettingsSection: CaseIterable, Hashable {
     case accounts
     case balance
-    case income
-    case bills
+    case inItems
+    case outItems
     case reserve
     case general
-    case palette
-    case helperText
-    case appLock
-    case backup
-    case onboarding
     case debtOverview
 }
 

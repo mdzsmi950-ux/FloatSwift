@@ -357,12 +357,12 @@ struct SettingsView: View {
                 }
             case .income:
                 setupActionButton("Add In") {
-                    expandedSections.insert(.income)
+                    expandedSections.insert(.inItems)
                     activeSheet = .newIncome
                 }
             case .obligation:
                 setupActionButton("Add Out") {
-                    expandedSections.insert(.bills)
+                    expandedSections.insert(.outItems)
                     activeSheet = .newBill
                 }
             case .overview:
@@ -1160,7 +1160,7 @@ struct SettingsView: View {
         }
     }
 
-    private func itemRow(title: String, subtitle: String, amount: String, edit: @escaping () -> Void) -> some View {
+    private func itemRow(title: String, subtitle: String, amount: String) -> some View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
                 Text(title)
@@ -1174,27 +1174,22 @@ struct SettingsView: View {
             Text(amount)
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Color.floatText)
-            Button("Edit", action: edit)
-                .buttonStyle(.plain)
-                .font(.system(size: 13))
-                .foregroundStyle(Color.floatText)
-                .padding(.horizontal, 10)
-                .frame(height: 28)
-                .background(.white.opacity(0.45))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(.black.opacity(0.06), lineWidth: 0.5)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+            Image(systemName: "chevron.right")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.floatTextFaint)
         }
         .padding(.vertical, Layout.rowVerticalPadding)
     }
 
     private func itemCard(title: String, subtitle: String, amount: String, edit: @escaping () -> Void) -> some View {
-        itemRow(title: title, subtitle: subtitle, amount: amount, edit: edit)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
+        Button(action: edit) {
+            itemRow(title: title, subtitle: subtitle, amount: amount)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
     }
 
     private func toggle(_ section: SettingsSection) {
@@ -1220,9 +1215,9 @@ struct SettingsView: View {
         case .balance:
             expandedSections.insert(.balance)
         case .income:
-            expandedSections.insert(.income)
+            expandedSections.insert(.inItems)
         case .obligation:
-            expandedSections.insert(.bills)
+            expandedSections.insert(.outItems)
         case .overview:
             break
         }

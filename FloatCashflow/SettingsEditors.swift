@@ -96,7 +96,7 @@ struct BillEditor: View {
                 labeled("Interest Rate") {
                     FloatTextField(placeholder: "4.485", text: $apr, keyboard: .decimalPad)
                 }
-                labeled("Minimum Payment") {
+                labeled("Required Minimum") {
                     FloatTextField(placeholder: "0.00", text: $minimumPayment, keyboard: .decimalPad)
                 }
                 labeled("Current Principal") {
@@ -243,7 +243,7 @@ struct BillEditor: View {
             return nil
         }
         guard let minimum = parseAmount(minimumPayment) else {
-            validationError = "Enter a valid minimum payment."
+            validationError = "Enter a valid required minimum."
             return nil
         }
 
