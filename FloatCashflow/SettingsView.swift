@@ -123,7 +123,7 @@ struct SettingsView: View {
                         incomeSection
                     case .out:
                         billsSection
-                        debtPayoffSection
+                        debtOverviewSection
                     case .settings:
                         setupGuide
                         accountsSection
@@ -243,7 +243,7 @@ struct SettingsView: View {
                 pendingImportData = nil
             }
         } message: {
-            Text("Importing this backup will replace your current accounts, balances, income, bills, cards, debts, and reserve. Export a backup first if you want to keep a copy of your current setup.")
+            Text("Importing this backup will replace your current accounts, balances, In items, Out items, debts, and reserve. Export a backup first if you want to keep a copy of your current setup.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .floatStartSetup)) { _ in
             firstAccountSetupComplete = false
@@ -271,7 +271,7 @@ struct SettingsView: View {
                 .foregroundStyle(Color.floatText)
             Spacer()
             if store.isDemoMode {
-                Button("Let's Go", action: startOwnBudget)
+                Button("Start Yours", action: startOwnBudget)
                     .buttonStyle(.plain)
                     .font(.system(size: 13, weight: .bold))
                     .foregroundStyle(.white)
@@ -356,12 +356,12 @@ struct SettingsView: View {
                     expandedSections.insert(.balance)
                 }
             case .income:
-                setupActionButton("Add Income") {
+                setupActionButton("Add In") {
                     expandedSections.insert(.income)
                     activeSheet = .newIncome
                 }
             case .obligation:
-                setupActionButton("Add Outgoing") {
+                setupActionButton("Add Out") {
                     expandedSections.insert(.bills)
                     activeSheet = .newBill
                 }
@@ -404,11 +404,11 @@ struct SettingsView: View {
     }
 
     @ViewBuilder
-    private var debtPayoffSection: some View {
+    private var debtOverviewSection: some View {
         if debtOverviewItems.isEmpty == false {
-            let summary = DebtPayoffMath.summary(for: debtOverviewItems)
+            let summary = DebtOverviewMath.summary(for: debtOverviewItems)
 
-            settingsCard(title: "Debt Overview", section: .debtPayoff) {
+            settingsCard(title: "Debt Overview", section: .debtOverview) {
                 VStack(alignment: .leading, spacing: Layout.cardContentGap) {
                     guidanceText("Calculated from the debt payments listed in Out.")
 
@@ -436,10 +436,10 @@ struct SettingsView: View {
         }
     }
 
-    private var debtOverviewItems: [DebtPayoffItem] {
+    private var debtOverviewItems: [DebtOverviewItem] {
         account.bills.compactMap { bill in
             guard let details = bill.debtDetails else { return nil }
-            return DebtPayoffItem(
+            return DebtOverviewItem(
                 id: "out-\(bill.id)",
                 name: bill.name,
                 startingBalance: details.startingBalance,
@@ -454,7 +454,7 @@ struct SettingsView: View {
         }
     }
 
-    private func debtOverviewDateText(_ summary: DebtPayoffSummary) -> String {
+    private func debtOverviewDateText(_ summary: DebtOverviewSummary) -> String {
         if !summary.canEstimate {
             return "Not enough to estimate"
         }
@@ -531,7 +531,7 @@ struct SettingsView: View {
     private var balanceSection: some View {
         settingsCard(title: "\(account.name) Balance", section: .balance) {
             VStack(alignment: .leading, spacing: Layout.cardContentGap) {
-                guidanceText("Update the cash balance you use for bills whenever your real balance changes.")
+                guidanceText("Update the cash balance you use for Out items whenever your real balance changes.")
                 HStack(spacing: 6) {
                     FloatTextField(
                         placeholder: confirmBalancePlaceholder,
@@ -570,7 +570,7 @@ struct SettingsView: View {
             }
 
             addItemCard(
-                title: "Add Outgoing Payment",
+                title: "Add Out",
                 helper: "Add all money going out: bills, cards, debts, subscriptions, transfers out, and other outgoing payments."
             ) {
                 activeSheet = .newBill
@@ -595,7 +595,7 @@ struct SettingsView: View {
             }
 
             addItemCard(
-                title: "Add Income",
+                title: "Add In",
                 helper: "Add all money coming in so Float knows when money arrives."
             ) {
                 activeSheet = .newIncome
@@ -606,7 +606,7 @@ struct SettingsView: View {
     private var accountsSection: some View {
         settingsCard(title: "Accounts", section: .accounts) {
             VStack(spacing: 2) {
-                guidanceText("Add the account you use for bills and enter its cash balance. Tap a name to view and edit that account.")
+                guidanceText("Add the account you use for Out items and enter its cash balance. Tap a name to view and edit that account.")
                 VStack(spacing: 2) {
                     ForEach(Array(store.budget.accounts.enumerated()), id: \.element.id) { index, item in
                         accountRow(item, index: index)
@@ -704,7 +704,7 @@ struct SettingsView: View {
 
                 generalDivider
 
-                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, bills, debts, and reserve.") {
+                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, In items, Out items, debts, and reserve.") {
                     HStack(spacing: 8) {
                         SettingsCompactButton(title: "Export Backup") {
                             prepareExport()

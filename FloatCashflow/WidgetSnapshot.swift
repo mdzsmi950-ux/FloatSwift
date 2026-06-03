@@ -153,7 +153,7 @@ struct FloatWidgetSnapshot: Codable {
         }
 
         if incomeTotal > 0, billTotal > 0 {
-            return "+\(money(incomeTotal)) in, -\(money(billTotal)) out"
+            return "+\(money(incomeTotal)) In, -\(money(billTotal)) Out"
         }
 
         if incomeTotal > 0 {

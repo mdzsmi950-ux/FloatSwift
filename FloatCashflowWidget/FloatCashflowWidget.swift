@@ -182,7 +182,7 @@ struct TodayRecapWidget: Widget {
             TodayRecapWidgetView(entry: entry)
         }
         .configurationDisplayName("Float Status")
-        .description("See whether your cash-flow timeline is floating or sinking.")
+        .description("See whether your In and Out plan is floating or sinking.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
 }

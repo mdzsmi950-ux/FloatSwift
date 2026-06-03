@@ -23,7 +23,7 @@
 		100000000000000000000015 /* AccountPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000114 /* AccountPalette.swift */; };
 		100000000000000000000016 /* PrivacyLockStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000115 /* PrivacyLockStore.swift */; };
 		100000000000000000000017 /* PrivacyLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000116 /* PrivacyLockView.swift */; };
-		100000000000000000000018 /* DebtPayoffModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000117 /* DebtPayoffModels.swift */; };
+		100000000000000000000018 /* DebtOverviewModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000117 /* DebtOverviewModels.swift */; };
 		100000000000000000000022 /* BackupPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000120 /* BackupPayload.swift */; };
 		100000000000000000000025 /* QuickActionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000123 /* QuickActionManager.swift */; };
 		100000000000000000000026 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000124 /* WidgetSnapshot.swift */; };
@@ -82,7 +82,7 @@
 		100000000000000000000114 /* AccountPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountPalette.swift; sourceTree = "<group>"; };
 		100000000000000000000115 /* PrivacyLockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLockStore.swift; sourceTree = "<group>"; };
 		100000000000000000000116 /* PrivacyLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLockView.swift; sourceTree = "<group>"; };
-		100000000000000000000117 /* DebtPayoffModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtPayoffModels.swift; sourceTree = "<group>"; };
+		100000000000000000000117 /* DebtOverviewModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtOverviewModels.swift; sourceTree = "<group>"; };
 		100000000000000000000120 /* BackupPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupPayload.swift; sourceTree = "<group>"; };
 		100000000000000000000123 /* QuickActionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionManager.swift; sourceTree = "<group>"; };
 		100000000000000000000124 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
@@ -146,7 +146,7 @@
 				100000000000000000000113 /* LegacyWebStorageProbe.swift */,
 				100000000000000000000115 /* PrivacyLockStore.swift */,
 				100000000000000000000116 /* PrivacyLockView.swift */,
-				100000000000000000000117 /* DebtPayoffModels.swift */,
+				100000000000000000000117 /* DebtOverviewModels.swift */,
 				100000000000000000000120 /* BackupPayload.swift */,
 				100000000000000000000123 /* QuickActionManager.swift */,
 				100000000000000000000124 /* WidgetSnapshot.swift */,
@@ -296,7 +296,7 @@
 				100000000000000000000014 /* LegacyWebStorageProbe.swift in Sources */,
 				100000000000000000000016 /* PrivacyLockStore.swift in Sources */,
 				100000000000000000000017 /* PrivacyLockView.swift in Sources */,
-				100000000000000000000018 /* DebtPayoffModels.swift in Sources */,
+				100000000000000000000018 /* DebtOverviewModels.swift in Sources */,
 				100000000000000000000022 /* BackupPayload.swift in Sources */,
 				100000000000000000000025 /* QuickActionManager.swift in Sources */,
 				100000000000000000000026 /* WidgetSnapshot.swift in Sources */,

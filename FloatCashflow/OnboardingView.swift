@@ -16,10 +16,10 @@ struct OnboardingView: View {
             ]
         ),
         OnboardingPage(
-            title: "Timeline matters",
+            title: "Timing matters",
             body: [
-                "Enter your paychecks and recurring obligations.",
-                "Float shows what your balance should look like after each paycheck and bill."
+                "Enter money coming In and money going Out.",
+                "Float shows what your balance should look like after each In item and Out item."
             ]
         ),
         OnboardingPage(
@@ -33,10 +33,10 @@ struct OnboardingView: View {
         OnboardingPage(
             title: "Now check In and Out",
             body: [
-                "In is where income is added, and Out is where bills, cards, debts, subscriptions, transfers out, and other outgoing payments are built.",
-                "Settings keeps accounts, balance, reserve, palette, app lock, onboarding, and backup controls.",
+                "In is where money coming in is added, and Out is where bills, cards, debts, subscriptions, transfers out, and other outgoing payments are built.",
+                "Settings keeps accounts, balance, reserve, and general controls like backup, palette, app lock, and onboarding.",
                 isDemoMode
-                    ? "When you are done with the demo, tap Explore Demo, then tap Let’s Go to erase the sample budget and start your own."
+                    ? "When you are done with the demo, use the demo button to erase the sample budget and start your own."
                     : "You can return to your budget without changing or erasing anything."
             ]
         )

@@ -132,7 +132,7 @@ struct BillEditor: View {
                     saveAttempted = true
                     let nextName = name.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !nextName.isEmpty else {
-                        validationError = "Enter a bill name."
+                        validationError = "Enter an Out name."
                         return
                     }
                     guard let parsedAmount = parseAmount(amount) else {
@@ -171,7 +171,7 @@ struct BillEditor: View {
             (Double(accruedInterest) ?? bill?.debtDetails?.accruedInterest ?? 0)
         let payment = Double(amount) ?? bill?.amount ?? 0
         let rate = Double(apr) ?? bill?.debtDetails?.interestRateAPR ?? 0
-        let item = DebtPayoffItem(
+        let item = DebtOverviewItem(
             id: bill?.id ?? "draft",
             name: name,
             startingBalance: Double(startingBalance) ?? bill?.debtDetails?.startingBalance ?? 0,
@@ -183,7 +183,7 @@ struct BillEditor: View {
             plannedMonthlyPayment: payment,
             nextPaymentDate: date.ymdString
         )
-        let months = DebtPayoffMath.monthsToPayoff(item)
+        let months = DebtOverviewMath.monthsToPayoff(item)
 
         return VStack(alignment: .leading, spacing: 8) {
             Text("Debt Details")
@@ -195,7 +195,7 @@ struct BillEditor: View {
             HStack(alignment: .top) {
                 detailMetric("Current Debt", money(balance))
                 Spacer()
-                detailMetric("Payoff", payoffText(months))
+                detailMetric("Debt-Free", debtFreeText(months))
             }
         }
         .padding(12)
@@ -218,11 +218,11 @@ struct BillEditor: View {
         }
     }
 
-    private func payoffText(_ months: Int?) -> String {
+    private func debtFreeText(_ months: Int?) -> String {
         guard let months else { return "Not enough" }
         if months == 0 { return "Paid off" }
-        let payoffDate = Calendar.current.date(byAdding: .month, value: months, to: date) ?? date
-        return labelDate(payoffDate.ymdString)
+        let debtFreeDate = Calendar.current.date(byAdding: .month, value: months, to: date) ?? date
+        return labelDate(debtFreeDate.ymdString)
     }
 
     private func makeDebtDetails() -> BudgetDebtDetails? {
@@ -312,7 +312,7 @@ struct IncomeEditor: View {
     }
 
     var body: some View {
-        EditorShell(accountColor: accountColor, title: income == nil ? "New Income" : "Edit Income") {
+        EditorShell(accountColor: accountColor, title: income == nil ? "New In" : "Edit In") {
             labeled("Name") {
                 FloatTextField(placeholder: "Paycheck", text: $label)
             }
@@ -345,15 +345,15 @@ struct IncomeEditor: View {
                     saveAttempted = true
                     let nextLabel = label.trimmingCharacters(in: .whitespacesAndNewlines)
                     guard !nextLabel.isEmpty else {
-                        validationError = "Enter an income name."
+                        validationError = "Enter an In name."
                         return
                     }
                     guard let parsedAmount = parseAmount(amount) else {
-                        validationError = "Enter a valid income amount."
+                        validationError = "Enter a valid In amount."
                         return
                     }
                     guard dateWasChosen else {
-                        validationError = "Choose an income date."
+                        validationError = "Choose an In date."
                         return
                     }
                     validationError = nil
@@ -363,7 +363,7 @@ struct IncomeEditor: View {
             }
             settingsFieldError(validationError)
         }
-        .alert("Delete \(income?.label ?? "Income")?", isPresented: $showDeleteAlert) {
+        .alert("Delete \(income?.label ?? "In")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 onDelete?()

@@ -105,16 +105,16 @@ final class QuickActionManager: ObservableObject {
             accountId = account.id
             if let sinkingDate = sinkingStatuses.first?.sinkingDate {
                 title = "\(account.name) Sinking \(labelDate(sinkingDate))"
-                subtitle = "Open timeline"
+                subtitle = "Open Overview"
             } else {
                 title = "\(account.name) Floating"
-                subtitle = "Open timeline"
+                subtitle = "Open Overview"
             }
         } else if let firstSinking = sinkingStatuses.first {
             accountId = firstSinking.account.id
             if sinkingStatuses.count == 1 {
                 title = "\(firstSinking.account.name) Sinking \(labelDate(firstSinking.sinkingDate))"
-                subtitle = "Open timeline"
+                subtitle = "Open Overview"
             } else {
                 title = "\(sinkingStatuses.count) Accounts Sinking"
                 subtitle = "Earliest: \(firstSinking.account.name) \(labelDate(firstSinking.sinkingDate))"
@@ -122,7 +122,7 @@ final class QuickActionManager: ObservableObject {
         } else {
             accountId = budget.widgetAccount?.id ?? budget.accounts.first?.id ?? FloatBudget.blank.accounts[0].id
             title = budget.accounts.count == 2 ? "Both Accounts Floating" : "All Accounts Floating"
-            subtitle = "Open timeline"
+            subtitle = "Open Overview"
         }
 
         return UIApplicationShortcutItem(

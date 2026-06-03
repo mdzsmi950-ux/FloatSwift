@@ -13,7 +13,7 @@ enum SettingsSection: CaseIterable, Hashable {
     case appLock
     case backup
     case onboarding
-    case debtPayoff
+    case debtOverview
 }
 
 enum SettingsMode {
@@ -84,26 +84,26 @@ enum SetupStep {
         case .balance:
             return "Confirm your cash balance"
         case .income:
-            return "Add your next income"
+            return "Add your next In"
         case .obligation:
-            return "Add an outgoing payment"
+            return "Add your next Out"
         case .overview:
-            return "Check your first timeline"
+            return "Check your first Overview"
         }
     }
 
     var message: String {
         switch self {
         case .account:
-            return "Start with the account you actually use to pay bills. You can keep the default name or edit it now."
+            return "Start with the account you actually use for Out items. You can keep the default name or edit it now."
         case .balance:
-            return "Enter the money available for bills and regular payments. Leave out savings and emergency reserves."
+            return "Enter the money available for Out items and regular payments. Leave out savings and emergency reserves."
         case .income:
-            return "Add your paycheck or other regular income. This gives Float the rhythm of when money comes in."
+            return "Add money coming in. This gives Float the rhythm of when your cash refills."
         case .obligation:
-            return "Add one payment that pulls money out. A bill, card, debt, subscription, transfer out, or other outgoing payment is enough to make the timeline useful."
+            return "Add one Out item. A bill, card, debt, subscription, transfer out, or other outgoing payment is enough to make Overview useful."
         case .overview:
-            return "Your first timeline is ready. Go back to Overview to see whether this account is floating or sinking."
+            return "Your first Overview is ready. Go back to Overview to see whether this account is floating or sinking."
         }
     }
 }

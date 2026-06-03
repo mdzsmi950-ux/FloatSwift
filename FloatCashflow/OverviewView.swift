@@ -81,7 +81,7 @@ struct OverviewView: View {
                 Spacer()
 
                 if store.isDemoMode {
-                    Button("Let's Go", action: startOwnBudget)
+                    Button("Start Yours", action: startOwnBudget)
                         .buttonStyle(.plain)
                         .font(.system(size: 13, weight: .bold))
                         .foregroundStyle(.white)
@@ -94,7 +94,7 @@ struct OverviewView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 if !hasIncome {
-                    Text("Add income to start")
+                    Text("Add In to start")
                 } else if let sinkingDate {
                     Text("Sinking \(longDate(sinkingDate))!")
                     Text("Cut Back Spending Now!")
@@ -143,11 +143,11 @@ struct OverviewView: View {
 
     private var noIncomeState: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("No income added yet")
+            Text("No In added yet")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.floatText)
 
-            Text("Add your paycheck or other regular income in In. Then Float can show what happens before and after money comes in.")
+            Text("Add money coming in. Then Float can show what happens before and after each In item.")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Color.floatTextMid)
                 .lineSpacing(3)
@@ -155,8 +155,8 @@ struct OverviewView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 noIncomeHintRow("Cash balance is only the starting point.")
-                noIncomeHintRow("Income gives the timeline its next refill.")
-                noIncomeHintRow("Bills and cards make more sense after that.")
+                noIncomeHintRow("In gives Overview its next refill.")
+                noIncomeHintRow("Out items make more sense after that.")
             }
             .padding(.top, 2)
         }

@@ -1,6 +1,6 @@
 import Foundation
 
-struct DebtPayoffItem: Codable, Equatable, Identifiable {
+struct DebtOverviewItem: Codable, Equatable, Identifiable {
     var id: String
     var name: String
     var startingBalance: Double
@@ -85,28 +85,28 @@ struct DebtPayoffItem: Codable, Equatable, Identifiable {
     }
 }
 
-struct DebtPayoffSummary {
+struct DebtOverviewSummary {
     var totalDebt: Double
     var monthlyPayments: Double
     var estimatedDebtFreeDate: String?
     var canEstimate: Bool
 }
 
-enum DebtPayoffMath {
+enum DebtOverviewMath {
     static let monthCap = 600
 
-    static func summary(for debts: [DebtPayoffItem]) -> DebtPayoffSummary {
+    static func summary(for debts: [DebtOverviewItem]) -> DebtOverviewSummary {
         let totalDebt = debts.reduce(0) { $0 + max(0, $1.estimatedCurrentBalance) }
         let monthlyPayments = debts.reduce(0) { $0 + max(0, $1.plannedMonthlyPayment) }
         guard !debts.isEmpty else {
-            return DebtPayoffSummary(totalDebt: 0, monthlyPayments: 0, estimatedDebtFreeDate: nil, canEstimate: true)
+            return DebtOverviewSummary(totalDebt: 0, monthlyPayments: 0, estimatedDebtFreeDate: nil, canEstimate: true)
         }
 
         let payoffMonths = debts.map(monthsToPayoff)
         guard payoffMonths.allSatisfy({ $0 != nil }),
               let longest = payoffMonths.compactMap({ $0 }).max(),
               longest <= monthCap else {
-            return DebtPayoffSummary(totalDebt: totalDebt, monthlyPayments: monthlyPayments, estimatedDebtFreeDate: nil, canEstimate: false)
+            return DebtOverviewSummary(totalDebt: totalDebt, monthlyPayments: monthlyPayments, estimatedDebtFreeDate: nil, canEstimate: false)
         }
 
         let startDate = debts
@@ -114,7 +114,7 @@ enum DebtPayoffMath {
             .min() ?? Date()
         let estimatedDate = Calendar.current.date(byAdding: .month, value: longest, to: startDate) ?? startDate
 
-        return DebtPayoffSummary(
+        return DebtOverviewSummary(
             totalDebt: totalDebt,
             monthlyPayments: monthlyPayments,
             estimatedDebtFreeDate: estimatedDate.ymdString,
@@ -122,7 +122,7 @@ enum DebtPayoffMath {
         )
     }
 
-    static func monthsToPayoff(_ debt: DebtPayoffItem) -> Int? {
+    static func monthsToPayoff(_ debt: DebtOverviewItem) -> Int? {
         var balance = debt.estimatedCurrentBalance
         guard balance > 0 else { return 0 }
 
