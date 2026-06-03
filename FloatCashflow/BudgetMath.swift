@@ -17,9 +17,18 @@ enum BudgetMath {
     }
 
     static func nextDate(_ date: String, frequency: Frequency) -> String? {
-        guard frequency != .oneTime, let parsed = Date.yyyyMMdd.date(from: date) else { return nil }
-        var components = DateComponents()
+        nextDate(after: date, frequency: frequency, anchorDate: date)
+    }
 
+    private static func nextDate(after date: String, frequency: Frequency, anchorDate: String) -> String? {
+        guard frequency != .oneTime,
+              let parsed = Date.yyyyMMdd.date(from: date) else { return nil }
+
+        if let monthIncrement = monthIncrement(for: frequency) {
+            return nextMonthBasedDate(after: parsed, anchorDate: anchorDate, monthIncrement: monthIncrement)
+        }
+
+        var components = DateComponents()
         switch frequency {
         case .oneTime:
             return nil
@@ -46,7 +55,7 @@ enum BudgetMath {
         var date = startDate
         while date < currentDate {
             if frequency == .oneTime { return startDate }
-            guard let next = nextDate(date, frequency: frequency) else { return startDate }
+            guard let next = nextDate(after: date, frequency: frequency, anchorDate: startDate) else { return startDate }
             date = next
         }
         return date
@@ -65,7 +74,7 @@ enum BudgetMath {
 
         while paidEarlyBills.contains(where: { $0.billId == bill.id && $0.originalDate == date }) {
             if bill.frequency == .oneTime { return "" }
-            guard let next = nextDate(date, frequency: bill.frequency) else { return "" }
+            guard let next = nextDate(after: date, frequency: bill.frequency, anchorDate: bill.startDate) else { return "" }
             date = next
         }
 
@@ -99,7 +108,8 @@ enum BudgetMath {
                     ))
                 }
 
-                guard bill.frequency != .oneTime, let next = nextDate(date, frequency: bill.frequency) else {
+                guard bill.frequency != .oneTime,
+                      let next = nextDate(after: date, frequency: bill.frequency, anchorDate: bill.startDate) else {
                     break
                 }
                 date = next
@@ -124,7 +134,8 @@ enum BudgetMath {
                     ))
                 }
 
-                guard item.frequency != .oneTime, let next = nextDate(date, frequency: item.frequency) else {
+                guard item.frequency != .oneTime,
+                      let next = nextDate(after: date, frequency: item.frequency, anchorDate: item.startDate) else {
                     break
                 }
                 date = next
@@ -147,5 +158,59 @@ enum BudgetMath {
         if lhs.date != rhs.date { return lhs.date < rhs.date }
         if lhs.type == rhs.type { return lhs.id < rhs.id }
         return lhs.type == .income
+    }
+
+    private static func monthIncrement(for frequency: Frequency) -> Int? {
+        switch frequency {
+        case .monthly:
+            return 1
+        case .quarterly:
+            return 3
+        case .semiannual:
+            return 6
+        case .annual:
+            return 12
+        case .oneTime, .weekly, .biweekly:
+            return nil
+        }
+    }
+
+    private static func nextMonthBasedDate(after date: Date, anchorDate: String, monthIncrement: Int) -> String? {
+        let calendar = Calendar(identifier: .gregorian)
+        guard let anchor = Date.yyyyMMdd.date(from: anchorDate),
+              let targetMonth = calendar.date(byAdding: .month, value: monthIncrement, to: date) else {
+            return nil
+        }
+
+        let targetComponents = calendar.dateComponents([.year, .month], from: targetMonth)
+        guard let year = targetComponents.year,
+              let month = targetComponents.month,
+              let lastDay = lastDayOfMonth(year: year, month: month, calendar: calendar) else {
+            return nil
+        }
+
+        let anchorDay = calendar.component(.day, from: anchor)
+        let day = isLastDayOfMonth(anchor, calendar: calendar) ? lastDay : min(anchorDay, lastDay)
+
+        return calendar.date(from: DateComponents(year: year, month: month, day: day))?.ymdString
+    }
+
+    private static func isLastDayOfMonth(_ date: Date, calendar: Calendar) -> Bool {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        guard let year = components.year,
+              let month = components.month,
+              let day = components.day,
+              let lastDay = lastDayOfMonth(year: year, month: month, calendar: calendar) else {
+            return false
+        }
+        return day == lastDay
+    }
+
+    private static func lastDayOfMonth(year: Int, month: Int, calendar: Calendar) -> Int? {
+        guard let monthStart = calendar.date(from: DateComponents(year: year, month: month, day: 1)),
+              let range = calendar.range(of: .day, in: .month, for: monthStart) else {
+            return nil
+        }
+        return range.upperBound - 1
     }
 }

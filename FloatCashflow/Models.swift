@@ -167,6 +167,7 @@ extension FloatBudget {
     static let blank = FloatBudget(
         version: 1,
         activeAccountId: "personal",
+        widgetAccountId: nil,
         accounts: [
             FloatAccount(
                 id: "personal",
@@ -188,6 +189,7 @@ extension FloatBudget {
         FloatBudget(
             version: 1,
             activeAccountId: "personal",
+            widgetAccountId: nil,
             accounts: [
                 FloatAccount(
                     id: "personal",

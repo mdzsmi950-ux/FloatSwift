@@ -18,7 +18,7 @@ struct OnboardingView: View {
         OnboardingPage(
             title: "Timing matters",
             body: [
-                "Enter your income and outgoing payments.",
+                "Enter your In and Out.",
                 "Float shows what your balance should look like after money comes in and payments go out."
             ]
         ),
@@ -33,7 +33,7 @@ struct OnboardingView: View {
         OnboardingPage(
             title: "Now check In and Out",
             body: [
-                "In is where income is added, and Out is where bills, cards, debts, transfers, and other outgoing payments are built.",
+                "In is where money arriving is added, and Out is where bills, cards, debts, transfers, and anything else going out are built.",
                 "Settings keeps accounts, balance, reserve, and general controls like backup, palette, app lock, and onboarding.",
                 isDemoMode
                     ? "When you are done with the demo, tap Start Yours to erase the sample budget and start your own."

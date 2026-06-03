@@ -11,6 +11,7 @@ enum DemoBudget {
         return FloatBudget(
             version: 1,
             activeAccountId: "personal",
+            widgetAccountId: nil,
             accounts: [
                 FloatAccount(
                     id: "personal",

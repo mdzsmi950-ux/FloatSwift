@@ -1,6 +1,7 @@
 import CryptoKit
 import Foundation
 import LocalAuthentication
+import Security
 
 @MainActor
 final class PrivacyLockStore: ObservableObject {
@@ -10,10 +11,14 @@ final class PrivacyLockStore: ObservableObject {
 
     private let defaults = UserDefaults.standard
     private let relockGraceInterval: TimeInterval = 60
+    private let keychainService = "com.maddie.floatapp.v1.appLock"
+    private let passcodeHashAccount = "passcodeHash"
+    private let passcodeSaltAccount = "passcodeSalt"
     private var lastUnlockedExitDate: Date?
 
     init() {
         isEnabled = defaults.bool(forKey: AppStorageKey.appLockEnabled)
+        migrateLegacyPasscodeToKeychain()
         refreshBiometry()
         if isEnabled, hasPasscode {
             isLocked = true
@@ -21,7 +26,7 @@ final class PrivacyLockStore: ObservableObject {
     }
 
     var hasPasscode: Bool {
-        defaults.string(forKey: AppStorageKey.appLockPasscodeHash) != nil
+        keychainString(account: passcodeHashAccount) != nil
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -33,14 +38,14 @@ final class PrivacyLockStore: ObservableObject {
     }
 
     func setPasscode(_ passcode: String) {
-        let salt = defaults.string(forKey: AppStorageKey.appLockPasscodeSalt) ?? UUID().uuidString
-        defaults.set(salt, forKey: AppStorageKey.appLockPasscodeSalt)
-        defaults.set(hash(passcode, salt: salt), forKey: AppStorageKey.appLockPasscodeHash)
+        let salt = keychainString(account: passcodeSaltAccount) ?? UUID().uuidString
+        setKeychainString(salt, account: passcodeSaltAccount)
+        setKeychainString(hash(passcode, salt: salt), account: passcodeHashAccount)
     }
 
     func validatePasscode(_ passcode: String) -> Bool {
-        guard let salt = defaults.string(forKey: AppStorageKey.appLockPasscodeSalt),
-              let storedHash = defaults.string(forKey: AppStorageKey.appLockPasscodeHash) else {
+        guard let salt = keychainString(account: passcodeSaltAccount),
+              let storedHash = keychainString(account: passcodeHashAccount) else {
             return false
         }
 
@@ -117,5 +122,55 @@ final class PrivacyLockStore: ObservableObject {
     private func hash(_ passcode: String, salt: String) -> String {
         let digest = SHA256.hash(data: Data("\(salt):\(passcode)".utf8))
         return digest.map { String(format: "%02x", $0) }.joined()
+    }
+
+    private func migrateLegacyPasscodeToKeychain() {
+        guard keychainString(account: passcodeHashAccount) == nil,
+              let legacyHash = defaults.string(forKey: AppStorageKey.appLockPasscodeHash),
+              let legacySalt = defaults.string(forKey: AppStorageKey.appLockPasscodeSalt) else {
+            return
+        }
+
+        setKeychainString(legacySalt, account: passcodeSaltAccount)
+        setKeychainString(legacyHash, account: passcodeHashAccount)
+        defaults.removeObject(forKey: AppStorageKey.appLockPasscodeSalt)
+        defaults.removeObject(forKey: AppStorageKey.appLockPasscodeHash)
+    }
+
+    private func keychainString(account: String) -> String? {
+        var query = keychainQuery(account: account)
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecReturnData as String] = true
+
+        var item: CFTypeRef?
+        let status = SecItemCopyMatching(query as CFDictionary, &item)
+        guard status == errSecSuccess,
+              let data = item as? Data else {
+            return nil
+        }
+        return String(data: data, encoding: .utf8)
+    }
+
+    @discardableResult
+    private func setKeychainString(_ value: String, account: String) -> Bool {
+        deleteKeychainString(account: account)
+
+        var item = keychainQuery(account: account)
+        item[kSecValueData as String] = Data(value.utf8)
+        item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+
+        return SecItemAdd(item as CFDictionary, nil) == errSecSuccess
+    }
+
+    private func deleteKeychainString(account: String) {
+        SecItemDelete(keychainQuery(account: account) as CFDictionary)
+    }
+
+    private func keychainQuery(account: String) -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: account
+        ]
     }
 }

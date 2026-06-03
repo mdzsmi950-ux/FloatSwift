@@ -30,13 +30,21 @@ func signedMoney(_ amount: Double) -> String {
 }
 
 func parseAmount(_ text: String) -> Double? {
+    parseDecimalAmount(text, allowsNegative: false)
+}
+
+func parseBalanceAmount(_ text: String) -> Double? {
+    parseDecimalAmount(text, allowsNegative: true)
+}
+
+private func parseDecimalAmount(_ text: String, allowsNegative: Bool) -> Double? {
     let cleaned = text
         .trimmingCharacters(in: .whitespacesAndNewlines)
         .replacingOccurrences(of: "$", with: "")
         .replacingOccurrences(of: ",", with: "")
     guard !cleaned.isEmpty,
           let amount = Double(cleaned),
-          amount >= 0 else {
+          allowsNegative || amount >= 0 else {
         return nil
     }
     return amount

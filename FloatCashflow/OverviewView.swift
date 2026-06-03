@@ -143,11 +143,11 @@ struct OverviewView: View {
 
     private var noIncomeState: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("No money coming in yet")
+            Text("Nothing in yet")
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.floatText)
 
-            Text("Add a paycheck or other money coming in. Then Float can show how your balance changes over time.")
+            Text("Add a paycheck or any other In. Then Float can show how your balance changes over time.")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Color.floatTextMid)
                 .lineSpacing(3)
@@ -155,8 +155,8 @@ struct OverviewView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 noIncomeHintRow("Cash balance is only the starting point.")
-                noIncomeHintRow("Money coming in gives the timeline its next refill.")
-                noIncomeHintRow("Outgoing payments make more sense after that.")
+                noIncomeHintRow("In gives the timeline its next refill.")
+                noIncomeHintRow("Out makes more sense after that.")
             }
             .padding(.top, 2)
         }

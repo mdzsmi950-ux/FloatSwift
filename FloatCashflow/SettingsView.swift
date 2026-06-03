@@ -45,7 +45,7 @@ struct SettingsView: View {
 
     private var sortedIncomeItems: [BudgetIncome] {
         account.income
-            .filter { $0.label != "Confirmed balance" }
+            .filter { $0.active && $0.label != "Confirmed balance" }
             .sorted {
                 BudgetMath.nextRecurringDate(startDate: $0.startDate, frequency: $0.frequency, currentDate: Date.todayString) <
                     BudgetMath.nextRecurringDate(startDate: $1.startDate, frequency: $1.frequency, currentDate: Date.todayString)
@@ -53,10 +53,12 @@ struct SettingsView: View {
     }
 
     private var sortedOutItems: [BudgetBill] {
-        account.bills.sorted {
-            BudgetMath.nextUnpaidBillDate(bill: $0, paidEarlyBills: account.paidEarlyBills) <
-                BudgetMath.nextUnpaidBillDate(bill: $1, paidEarlyBills: account.paidEarlyBills)
-        }
+        account.bills
+            .filter(\.active)
+            .sorted {
+                BudgetMath.nextUnpaidBillDate(bill: $0, paidEarlyBills: account.paidEarlyBills) <
+                    BudgetMath.nextUnpaidBillDate(bill: $1, paidEarlyBills: account.paidEarlyBills)
+            }
     }
 
     private var backupStatusText: String {
@@ -243,7 +245,14 @@ struct SettingsView: View {
                 pendingImportData = nil
             }
         } message: {
-            Text("Importing this backup will replace your current accounts, balances, income, Out items, and reserve. Export a backup first if you want to keep a copy of your current setup.")
+            Text("Importing this backup will replace your current accounts, balances, In, Out, and reserve. Export a backup first if you want to keep a copy of your current setup.")
+        }
+        .alert("Couldn't Save", isPresented: saveErrorBinding) {
+            Button("OK") {
+                store.clearSaveError()
+            }
+        } message: {
+            Text(store.lastSaveError ?? "Float could not save your latest change.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .floatStartSetup)) { _ in
             firstAccountSetupComplete = false
@@ -539,7 +548,7 @@ struct SettingsView: View {
                         keyboard: .decimalPad
                     )
                     FloatButton(title: "Confirm") {
-                        guard let amount = parseAmount(confirmBalanceText) else {
+                        guard let amount = parseBalanceAmount(confirmBalanceText) else {
                             confirmBalanceError = "Enter a valid balance."
                             return
                         }
@@ -555,7 +564,7 @@ struct SettingsView: View {
 
     private var billsSection: some View {
         VStack(alignment: .leading, spacing: Layout.sectionGap) {
-            pageSectionTitle("\(account.name) Outgoing Payments")
+            pageSectionTitle("\(account.name) Out")
 
             VStack(spacing: 8) {
                 if sortedOutItems.isEmpty {
@@ -574,8 +583,8 @@ struct SettingsView: View {
             }
 
             addItemCard(
-                title: "Add Outgoing Payment",
-                helper: "Add bills, cards, debts, transfers, or other outgoing payments."
+                title: "Add Out",
+                helper: "Add bills, cards, debts, transfers, or anything else going out."
             ) {
                 activeSheet = .newBill
             }
@@ -584,10 +593,10 @@ struct SettingsView: View {
 
     private var outEmptyState: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Nothing going out yet.")
+            Text("Nothing out yet.")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.floatText)
-            Text("Add bills, cards, debts, transfers, or other outgoing payments.")
+            Text("Add bills, cards, debts, transfers, or anything else going out.")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Color.floatTextFaint)
                 .fixedSize(horizontal: false, vertical: true)
@@ -600,7 +609,7 @@ struct SettingsView: View {
 
     private var incomeSection: some View {
         VStack(alignment: .leading, spacing: Layout.sectionGap) {
-            pageSectionTitle("\(account.name) Income")
+            pageSectionTitle("\(account.name) In")
 
             VStack(spacing: 8) {
                 if sortedIncomeItems.isEmpty {
@@ -620,7 +629,7 @@ struct SettingsView: View {
 
             addItemCard(
                 title: "Add In",
-                helper: "Add all money coming in so Float knows when money arrives."
+                helper: "Add all In so Float knows when money arrives."
             ) {
                 activeSheet = .newIncome
             }
@@ -629,10 +638,10 @@ struct SettingsView: View {
 
     private var inEmptyState: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Nothing coming in yet.")
+            Text("Nothing in yet.")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.floatText)
-            Text("Add your paycheck or other money coming in so Float knows when your balance refills.")
+            Text("Add your paycheck or any other In so Float knows when your balance refills.")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Color.floatTextFaint)
                 .fixedSize(horizontal: false, vertical: true)
@@ -744,7 +753,7 @@ struct SettingsView: View {
 
                 generalDivider
 
-                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, Out items, and reserve.") {
+                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, In, Out, and reserve.") {
                     HStack(spacing: 8) {
                         SettingsCompactButton(title: "Export Backup") {
                             prepareExport()
@@ -989,6 +998,17 @@ struct SettingsView: View {
             set: { isPresented in
                 if !isPresented {
                     pendingImportData = nil
+                }
+            }
+        )
+    }
+
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(
+            get: { store.lastSaveError != nil },
+            set: { isPresented in
+                if !isPresented {
+                    store.clearSaveError()
                 }
             }
         )

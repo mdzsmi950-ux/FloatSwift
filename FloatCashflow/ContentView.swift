@@ -143,6 +143,24 @@ struct ContentView: View {
         } message: {
             Text("This will erase the sample budget and let you start with your own information.")
         }
+        .alert("Couldn't Save", isPresented: saveErrorBinding) {
+            Button("OK") {
+                store.clearSaveError()
+            }
+        } message: {
+            Text(store.lastSaveError ?? "Float could not save your latest change.")
+        }
+    }
+
+    private var saveErrorBinding: Binding<Bool> {
+        Binding(
+            get: { store.lastSaveError != nil },
+            set: { isPresented in
+                if !isPresented {
+                    store.clearSaveError()
+                }
+            }
+        )
     }
 
     private func consumePendingQuickAction() {
@@ -369,7 +387,7 @@ private struct QuickBalanceEditor: View {
 
                 Button("Confirm") {
                     UIApplication.dismissKeyboard()
-                    guard let amount = parseAmount(amountText) else {
+                    guard let amount = parseBalanceAmount(amountText) else {
                         validationError = "Enter a valid balance."
                         return
                     }

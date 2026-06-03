@@ -79,9 +79,9 @@ enum SetupStep {
         case .balance:
             return "Confirm your cash balance"
         case .income:
-            return "Add money coming in"
+            return "Add In"
         case .outgoingPayment:
-            return "Add an outgoing payment"
+            return "Add an Out"
         case .overview:
             return "Check your first timeline"
         }
@@ -94,9 +94,9 @@ enum SetupStep {
         case .balance:
             return "Enter the cash balance you want Float to start from. Leave out savings and emergency reserves."
         case .income:
-            return "Add money coming in. This gives Float the rhythm of when your cash refills."
+            return "Add In. This gives Float the rhythm of when your cash refills."
         case .outgoingPayment:
-            return "Add one outgoing payment. Bills, cards, debts, transfers, or other outgoing payments are enough to make Overview useful."
+            return "Add one Out. Bills, cards, debts, transfers, or anything else going out is enough to make Overview useful."
         case .overview:
             return "Your first timeline is ready. Go back to Overview to see whether this account is floating or sinking."
         }
@@ -135,7 +135,7 @@ struct BackupDocument: FileDocument {
     init(budget: FloatBudget) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        data = try encoder.encode(budget)
+        data = try encoder.encode(FloatBackupPayload(budget: budget))
     }
 
     init(configuration: ReadConfiguration) throws {
