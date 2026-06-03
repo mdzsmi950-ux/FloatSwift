@@ -25,7 +25,6 @@ struct SettingsView: View {
     @State private var importMessage: String?
     @State private var activeSheet: SettingsSheet?
     @State private var passcodeFlow: PasscodeFlow?
-    @State private var showDebtPayoff = false
     @AppStorage(AppStorageKey.settingsGuidanceVisible) private var showGuidance = true
     @AppStorage(AppStorageKey.firstSetupComplete) private var firstSetupComplete = false
     @AppStorage(AppStorageKey.firstAccountSetupComplete) private var firstAccountSetupComplete = false
@@ -286,9 +285,6 @@ struct SettingsView: View {
         .onChange(of: store.budget) {
             expandSetupSection()
         }
-        .sheet(isPresented: $showDebtPayoff) {
-            DebtPayoffView(store: debtPayoffStore)
-        }
         .fullScreenCover(item: $passcodeFlow) { flow in
             PasscodeManagementView(mode: flow, privacyLock: privacyLock)
         }
@@ -438,33 +434,78 @@ struct SettingsView: View {
     }
 
     private var debtPayoffSection: some View {
-        settingsCard(title: "Debt Payoff", section: .debtPayoff) {
+        let summary = DebtPayoffMath.summary(for: debtOverviewItems)
+
+        return settingsCard(title: "Debt Overview", section: .debtPayoff) {
             VStack(alignment: .leading, spacing: Layout.cardContentGap) {
-                guidanceText("Use the debt payoff planner after your outgoing debt payments are entered.")
-                Button {
-                    showDebtPayoff = true
-                } label: {
-                    HStack(spacing: 10) {
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text("Debt Payoff")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundStyle(Color.floatText)
-                            guidanceText("Debt payments from Out sync here. Changes made here stay planning-only.")
-                        }
+                guidanceText("Calculated from the debt payments listed in Out.")
 
-                        Spacer()
+                HStack(alignment: .top, spacing: 12) {
+                    debtOverviewMetric(
+                        title: "Total Debt",
+                        value: money(summary.totalDebt),
+                        color: .floatText
+                    )
 
-                        Image(systemName: "chevron.right")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color.floatTextFaint)
-                    }
-                    .contentShape(Rectangle())
-                    .padding(.vertical, 4)
+                    debtOverviewMetric(
+                        title: "Monthly Payments",
+                        value: money(summary.monthlyPayments),
+                        color: .floatTextMid
+                    )
                 }
-                .buttonStyle(.plain)
 
+                debtOverviewMetric(
+                    title: "Estimated Debt-Free Date",
+                    value: debtOverviewDateText(summary),
+                    color: summary.canEstimate ? .floatAccent : .floatWarning
+                )
             }
         }
+    }
+
+    private var debtOverviewItems: [DebtPayoffItem] {
+        account.bills.compactMap { bill in
+            guard let details = bill.debtDetails else { return nil }
+            return DebtPayoffItem(
+                id: "out-\(bill.id)",
+                name: bill.name,
+                startingBalance: details.startingBalance,
+                currentPrincipal: details.currentPrincipal,
+                accruedInterest: details.accruedInterest,
+                balanceDate: details.balanceDate,
+                interestRateAPR: details.interestRateAPR,
+                minimumPayment: details.minimumPayment,
+                plannedMonthlyPayment: bill.amount,
+                nextPaymentDate: bill.startDate
+            )
+        }
+    }
+
+    private func debtOverviewDateText(_ summary: DebtPayoffSummary) -> String {
+        if !summary.canEstimate {
+            return "Not enough to estimate"
+        }
+
+        guard let date = summary.estimatedDebtFreeDate else {
+            return "-"
+        }
+
+        return labelDate(date)
+    }
+
+    private func debtOverviewMetric(title: String, value: String, color: Color) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(title)
+                .font(.system(size: 11))
+                .foregroundStyle(Color.floatTextFaint)
+            Text(value)
+                .font(.system(size: 17, weight: .bold))
+                .foregroundStyle(color)
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.76)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var reserveSection: some View {

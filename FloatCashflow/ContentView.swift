@@ -196,7 +196,7 @@ struct ContentView: View {
 
                     bottomTab(
                         title: "In",
-                        icon: "list.bullet.rectangle",
+                        icon: "arrow.down",
                         isSelected: selectedTab == .income
                     ) {
                         selectedTab = .income
@@ -211,7 +211,7 @@ struct ContentView: View {
 
                     bottomTab(
                         title: "Out",
-                        icon: "arrow.up.right",
+                        icon: "arrow.up",
                         isSelected: selectedTab == .out
                     ) {
                         selectedTab = .out
