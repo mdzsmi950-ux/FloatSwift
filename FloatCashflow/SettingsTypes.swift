@@ -81,7 +81,7 @@ enum SetupStep {
         case .income:
             return "Add your next In"
         case .obligation:
-            return "Add your next Out"
+            return "Add an outgoing payment"
         case .overview:
             return "Check your first Overview"
         }
@@ -96,7 +96,7 @@ enum SetupStep {
         case .income:
             return "Add money coming in. This gives Float the rhythm of when your cash refills."
         case .obligation:
-            return "Add one Out item. A bill, card, debt, subscription, transfer out, or other outgoing payment is enough to make Overview useful."
+            return "Add one outgoing payment. Bills, cards, debts, transfers, or other outgoing payments are enough to make Overview useful."
         case .overview:
             return "Your first Overview is ready. Go back to Overview to see whether this account is floating or sinking."
         }

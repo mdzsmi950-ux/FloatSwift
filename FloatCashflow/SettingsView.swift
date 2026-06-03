@@ -243,7 +243,7 @@ struct SettingsView: View {
                 pendingImportData = nil
             }
         } message: {
-            Text("Importing this backup will replace your current accounts, balances, In items, Out items, debts, and reserve. Export a backup first if you want to keep a copy of your current setup.")
+            Text("Importing this backup will replace your current accounts, balances, income, Out items, and reserve. Export a backup first if you want to keep a copy of your current setup.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .floatStartSetup)) { _ in
             firstAccountSetupComplete = false
@@ -558,24 +558,44 @@ struct SettingsView: View {
             pageSectionTitle("\(account.name) Outgoing Payments")
 
             VStack(spacing: 8) {
-                ForEach(sortedOutItems) { bill in
-                    itemCard(
-                        title: bill.name,
-                        subtitle: "Next: \(labelDate(BudgetMath.nextUnpaidBillDate(bill: bill, paidEarlyBills: account.paidEarlyBills))) · \(bill.frequency.rawValue)",
-                        amount: money(bill.amount)
-                    ) {
-                        activeSheet = .editBill(bill)
+                if sortedOutItems.isEmpty {
+                    outEmptyState
+                } else {
+                    ForEach(sortedOutItems) { bill in
+                        itemCard(
+                            title: bill.name,
+                            subtitle: "Next: \(labelDate(BudgetMath.nextUnpaidBillDate(bill: bill, paidEarlyBills: account.paidEarlyBills))) · \(bill.frequency.rawValue)",
+                            amount: money(bill.amount)
+                        ) {
+                            activeSheet = .editBill(bill)
+                        }
                     }
                 }
             }
 
             addItemCard(
-                title: "Add Out",
-                helper: "Add all money going out: bills, cards, debts, subscriptions, transfers out, and other outgoing payments."
+                title: "Add Outgoing Payment",
+                helper: "Add bills, cards, debts, transfers, or other outgoing payments."
             ) {
                 activeSheet = .newBill
             }
         }
+    }
+
+    private var outEmptyState: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Nothing going out yet.")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.floatText)
+            Text("Add bills, cards, debts, transfers, or other outgoing payments.")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.floatTextFaint)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
     }
 
     private var incomeSection: some View {
@@ -704,7 +724,7 @@ struct SettingsView: View {
 
                 generalDivider
 
-                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, In items, Out items, debts, and reserve.") {
+                generalGroup("Backup", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, Out items, and reserve.") {
                     HStack(spacing: 8) {
                         SettingsCompactButton(title: "Export Backup") {
                             prepareExport()

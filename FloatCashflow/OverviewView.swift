@@ -156,7 +156,7 @@ struct OverviewView: View {
             VStack(alignment: .leading, spacing: 6) {
                 noIncomeHintRow("Cash balance is only the starting point.")
                 noIncomeHintRow("In gives Overview its next refill.")
-                noIncomeHintRow("Out items make more sense after that.")
+                noIncomeHintRow("Outgoing payments make more sense after that.")
             }
             .padding(.top, 2)
         }
