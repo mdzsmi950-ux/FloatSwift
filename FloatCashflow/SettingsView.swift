@@ -127,6 +127,7 @@ struct SettingsView: View {
                     case .settings:
                         setupGuide
                         accountsSection
+                        balanceSection
                         reserveSection
                         generalSettingsSection
                     }
@@ -250,7 +251,7 @@ struct SettingsView: View {
             expandSetupSection()
         }
         .onReceive(NotificationCenter.default.publisher(for: .floatFocusBalance)) { _ in
-            expandedSections.insert(.general)
+            expandedSections.insert(.balance)
         }
         .onAppear {
             expandSetupSection()
@@ -352,7 +353,7 @@ struct SettingsView: View {
                 }
             case .balance:
                 setupActionButton("Confirm Balance") {
-                    expandedSections.insert(.general)
+                    expandedSections.insert(.balance)
                 }
             case .income:
                 setupActionButton("Add Income") {
@@ -527,6 +528,31 @@ struct SettingsView: View {
         }
     }
 
+    private var balanceSection: some View {
+        settingsCard(title: "\(account.name) Balance", section: .balance) {
+            VStack(alignment: .leading, spacing: Layout.cardContentGap) {
+                guidanceText("Update the cash balance you use for bills whenever your real balance changes.")
+                HStack(spacing: 6) {
+                    FloatTextField(
+                        placeholder: confirmBalancePlaceholder,
+                        text: $confirmBalanceText,
+                        keyboard: .decimalPad
+                    )
+                    FloatButton(title: "Confirm") {
+                        guard let amount = parseAmount(confirmBalanceText) else {
+                            confirmBalanceError = "Enter a valid balance."
+                            return
+                        }
+                        store.confirmBalance(amount)
+                        confirmBalanceText = ""
+                        confirmBalanceError = nil
+                    }
+                }
+                settingsFieldError(confirmBalanceError)
+            }
+        }
+    }
+
     private var billsSection: some View {
         settingsCard(title: "\(account.name) Outgoing Payments", section: .bills) {
             VStack(spacing: 2) {
@@ -648,49 +674,23 @@ struct SettingsView: View {
     private var generalSettingsSection: some View {
         settingsCard(title: "General Settings", section: .general) {
             VStack(alignment: .leading, spacing: Layout.itemGap) {
-                generalGroup("Balance", helper: "Update the cash balance you use for bills whenever your real balance changes.") {
-                    HStack(spacing: 6) {
-                        FloatTextField(
-                            placeholder: confirmBalancePlaceholder,
-                            text: $confirmBalanceText,
-                            keyboard: .decimalPad
-                        )
-                        FloatButton(title: "Confirm") {
-                            guard let amount = parseAmount(confirmBalanceText) else {
-                                confirmBalanceError = "Enter a valid balance."
-                                return
-                            }
-                            store.confirmBalance(amount)
-                            confirmBalanceText = ""
-                            confirmBalanceError = nil
-                        }
-                    }
-                    settingsFieldError(confirmBalanceError)
-                }
-
-                generalDivider
-
                 generalGroup("Palette", helper: "Choose the color style that feels easiest to read.") {
                     palettePicker
                 }
 
                 generalDivider
 
-                generalGroup("Helper Text") {
-                    generalToggleRow(
-                        title: "Show helper text",
-                        helper: "Hide or show the small gray notes throughout Settings.",
-                        isOn: showGuidance
-                    ) {
-                        showGuidance.toggle()
-                    }
+                generalToggleRow(
+                    title: "Show helper text",
+                    helper: "Hide or show the small gray notes throughout Settings.",
+                    isOn: showGuidance
+                ) {
+                    showGuidance.toggle()
                 }
 
                 generalDivider
 
-                generalGroup("App Lock") {
-                    generalLockRow()
-                }
+                generalLockRow()
 
                 generalDivider
 
@@ -718,13 +718,11 @@ struct SettingsView: View {
 
                 generalDivider
 
-                generalGroup("Onboarding") {
-                    generalNavigationRow(
-                        title: "See Onboarding Again",
-                        helper: "Review the intro again without changing your current budget."
-                    ) {
-                        NotificationCenter.default.post(name: .floatReplayOnboarding, object: nil)
-                    }
+                generalNavigationRow(
+                    title: "Onboarding",
+                    helper: "Review the intro again without changing your current budget."
+                ) {
+                    NotificationCenter.default.post(name: .floatReplayOnboarding, object: nil)
                 }
             }
         }
@@ -1172,7 +1170,7 @@ struct SettingsView: View {
         case .account:
             expandedSections.insert(.accounts)
         case .balance:
-            expandedSections.insert(.general)
+            expandedSections.insert(.balance)
         case .income:
             expandedSections.insert(.income)
         case .obligation:
