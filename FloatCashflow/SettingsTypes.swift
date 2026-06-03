@@ -14,21 +14,21 @@ enum SettingsSection: CaseIterable, Hashable {
     case appLock
     case backup
     case onboarding
-    case tools
+    case debtPayoff
 }
 
 enum SettingsMode {
-    case plan
-    case tools
-    case more
+    case income
+    case out
+    case settings
 
     var title: String {
         switch self {
-        case .plan:
-            "Plan"
-        case .tools:
-            "Tools"
-        case .more:
+        case .income:
+            "In"
+        case .out:
+            "Out"
+        case .settings:
             "Settings"
         }
     }
@@ -87,7 +87,7 @@ enum SetupStep {
         case .income:
             return "Add your next income"
         case .obligation:
-            return "Add a bill, card, or debt"
+            return "Add an outgoing payment"
         case .overview:
             return "Check your first timeline"
         }
@@ -102,7 +102,7 @@ enum SetupStep {
         case .income:
             return "Add your paycheck or other regular income. This gives Float the rhythm of when money comes in."
         case .obligation:
-            return "Add one payment that pulls money out. A fixed bill, card payment, or debt is enough to make the timeline useful."
+            return "Add one payment that pulls money out. A bill, card, debt, subscription, transfer out, or other outgoing payment is enough to make the timeline useful."
         case .overview:
             return "Your first timeline is ready. Go back to Overview to see whether this account is floating or sinking."
         }

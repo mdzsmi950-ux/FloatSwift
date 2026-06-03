@@ -5,7 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject private var store: BudgetStore
     @Environment(\.colorSchemeContrast) private var colorSchemeContrast
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
-    var mode: SettingsMode = .plan
+    var mode: SettingsMode = .income
     var goToOverview: () -> Void
     var startOwnBudget: () -> Void
     @ObservedObject var privacyLock: PrivacyLockStore
@@ -105,17 +105,17 @@ struct SettingsView: View {
 
                 VStack(spacing: Layout.sectionGap) {
                     switch mode {
-                    case .plan:
+                    case .income:
+                        incomeSection
+                    case .out:
+                        billsSection
+                        debtsSection
+                        debtPayoffSection
+                    case .settings:
                         setupGuide
                         accountsSection
                         balanceSection
-                        incomeSection
-                        billsSection
-                        debtsSection
                         reserveSection
-                    case .tools:
-                        toolsSection
-                    case .more:
                         generalSettingsSection
                     }
                 }
@@ -391,7 +391,7 @@ struct SettingsView: View {
                     activeSheet = .newIncome
                 }
             case .obligation:
-                setupActionButton("Add Bill/Card") {
+                setupActionButton("Add Outgoing") {
                     expandedSections.insert(.bills)
                     activeSheet = .newBill
                 }
@@ -437,10 +437,10 @@ struct SettingsView: View {
             .clipShape(RoundedRectangle(cornerRadius: 9))
     }
 
-    private var toolsSection: some View {
-        settingsCard(title: "Tools", section: .tools) {
+    private var debtPayoffSection: some View {
+        settingsCard(title: "Debt Payoff", section: .debtPayoff) {
             VStack(alignment: .leading, spacing: Layout.cardContentGap) {
-                guidanceText("Tools are for planning only. Plan and Overview are where your real cash-flow timeline lives.")
+                guidanceText("Use the debt payoff planner after your outgoing debt payments are entered.")
                 Button {
                     showDebtPayoff = true
                 } label: {
@@ -449,7 +449,7 @@ struct SettingsView: View {
                             Text("Debt Payoff")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundStyle(Color.floatText)
-                            guidanceText("Changes in Plan will sync here for payoff planning. Changes made here stay planning-only.")
+                            guidanceText("Debt payments from Out sync here. Changes made here stay planning-only.")
                         }
 
                         Spacer()
@@ -463,9 +463,6 @@ struct SettingsView: View {
                 }
                 .buttonStyle(.plain)
 
-                Text("More tools coming soon.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Color.floatTextFaint)
             }
         }
     }
@@ -543,9 +540,9 @@ struct SettingsView: View {
     }
 
     private var billsSection: some View {
-        settingsCard(title: "\(account.name) Bills & Cards", section: .bills) {
+        settingsCard(title: "\(account.name) Outgoing Payments", section: .bills) {
             VStack(spacing: 2) {
-                guidanceText("Add bills, subscriptions, and credit card payments so Float knows what money is going out.")
+                guidanceText("Add bills, cards, subscriptions, transfers out, and other outgoing payments so Float knows what money is leaving.")
                 ForEach(account.bills.filter { $0.debtDetails == nil }) { bill in
                     itemRow(
                         title: bill.name,
@@ -555,7 +552,7 @@ struct SettingsView: View {
                         activeSheet = .editBill(bill)
                     }
 		                }
-                addActionRow(title: "Add Bill/Card") {
+                addActionRow(title: "Add Outgoing Payment") {
                     activeSheet = .newBill
                 }
 		            }

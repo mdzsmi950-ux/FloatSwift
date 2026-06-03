@@ -139,7 +139,7 @@ struct OverviewView: View {
                 .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(Color.floatText)
 
-            Text("Add your paycheck or other regular income in Plan. Then Float can show what happens before and after money comes in.")
+            Text("Add your paycheck or other regular income in In. Then Float can show what happens before and after money comes in.")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Color.floatTextMid)
                 .lineSpacing(3)

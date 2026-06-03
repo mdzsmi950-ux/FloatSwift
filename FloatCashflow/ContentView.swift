@@ -31,23 +31,23 @@ struct ContentView: View {
                     OverviewView(startOwnBudget: {
                         showStartOwnBudgetAlert = true
                     })
-                case .plan:
+                case .income:
                     SettingsView(
-                        mode: .plan,
+                        mode: .income,
                         goToOverview: { selectedTab = .overview },
                         startOwnBudget: { showStartOwnBudgetAlert = true },
                         privacyLock: privacyLock
                     )
-                case .tools:
+                case .out:
                     SettingsView(
-                        mode: .tools,
+                        mode: .out,
                         goToOverview: { selectedTab = .overview },
                         startOwnBudget: { showStartOwnBudgetAlert = true },
                         privacyLock: privacyLock
                     )
-                case .more:
+                case .settings:
                     SettingsView(
-                        mode: .more,
+                        mode: .settings,
                         goToOverview: { selectedTab = .overview },
                         startOwnBudget: { showStartOwnBudgetAlert = true },
                         privacyLock: privacyLock
@@ -131,7 +131,7 @@ struct ContentView: View {
             Button("Cancel", role: .cancel) {}
             Button("Erase Demo", role: .destructive) {
                 store.startOwnBudget()
-                selectedTab = .plan
+                selectedTab = .settings
                 showOnboarding = false
                 NotificationCenter.default.post(name: .floatStartSetup, object: nil)
             }
@@ -195,11 +195,11 @@ struct ContentView: View {
                         .opacity(0.45)
 
                     bottomTab(
-                        title: "Plan",
+                        title: "In",
                         icon: "list.bullet.rectangle",
-                        isSelected: selectedTab == .plan
+                        isSelected: selectedTab == .income
                     ) {
-                        selectedTab = .plan
+                        selectedTab = .income
                     }
 
                     Spacer()
@@ -210,11 +210,11 @@ struct ContentView: View {
                         .opacity(0.45)
 
                     bottomTab(
-                        title: "Tools",
-                        icon: "wrench.and.screwdriver",
-                        isSelected: selectedTab == .tools
+                        title: "Out",
+                        icon: "arrow.up.right",
+                        isSelected: selectedTab == .out
                     ) {
-                        selectedTab = .tools
+                        selectedTab = .out
                     }
 
                     Divider()
@@ -224,9 +224,9 @@ struct ContentView: View {
                     bottomTab(
                         title: "Settings",
                         icon: "gearshape",
-                        isSelected: selectedTab == .more
+                        isSelected: selectedTab == .settings
                     ) {
-                        selectedTab = .more
+                        selectedTab = .settings
                     }
                 }
                 .padding(.horizontal, 7)
@@ -313,9 +313,9 @@ extension Notification.Name {
 
 private enum AppTab {
     case overview
-    case plan
-    case tools
-    case more
+    case income
+    case out
+    case settings
 }
 
 private struct QuickBalanceEditor: View {

@@ -31,10 +31,10 @@ struct OnboardingView: View {
             ]
         ),
         OnboardingPage(
-            title: "Now check Settings",
+            title: "Now check In and Out",
             body: [
-                "Settings is where the budget is built.",
-                "Add accounts, confirm your balance, enter bills, add income, update your reserve, and export or import a backup.",
+                "In is where income is added, and Out is where bills, cards, debts, subscriptions, transfers out, and other outgoing payments are built.",
+                "Settings keeps accounts, balance, reserve, palette, app lock, onboarding, and backup controls.",
                 isDemoMode
                     ? "When you are done with the demo, tap Explore Demo, then tap Let’s Go to erase the sample budget and start your own."
                     : "You can return to your budget without changing or erasing anything."
