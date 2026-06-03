@@ -133,7 +133,7 @@ struct FloatWidgetSnapshot: Codable {
     private static func todayTitle(for events: [CashEvent]) -> String {
         guard !events.isEmpty else { return "Clear Today" }
         if events.count == 1 {
-            return events[0].type == .income ? "Income Today" : "Due Today"
+            return events[0].type == .income ? "In Today" : "Out Today"
         }
         return "\(events.count) Items Today"
     }
@@ -157,10 +157,10 @@ struct FloatWidgetSnapshot: Codable {
         }
 
         if incomeTotal > 0 {
-            return "+\(money(incomeTotal)) coming in"
+            return "+\(money(incomeTotal)) In"
         }
 
-        return "-\(money(billTotal)) going out"
+        return "-\(money(billTotal)) Out"
     }
 
     private static func widgetSort(_ lhs: CashEvent, _ rhs: CashEvent) -> Bool {

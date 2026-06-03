@@ -72,9 +72,10 @@ enum BudgetMath {
         return date
     }
 
-    static func buildEvents(account: FloatAccount, cutoff: String, includeAnchorDate: Bool = true) -> [CashEvent] {
+    static func buildEvents(account: FloatAccount, cutoff: String, includeAnchorDate: Bool? = nil) -> [CashEvent] {
         var events: [CashEvent] = []
         let startDate = account.lastConfirmedDate ?? Date.todayString
+        let shouldIncludeAnchorDate = includeAnchorDate ?? !account.balanceIsConfirmed
 
         for bill in account.bills where bill.active {
             var date = nextRecurringDate(
@@ -88,7 +89,7 @@ enum BudgetMath {
                     $0.billId == bill.id && $0.originalDate == date
                 }
 
-                if (includeAnchorDate ? date >= startDate : date > startDate), !wasPaidEarly {
+                if (shouldIncludeAnchorDate ? date >= startDate : date > startDate), !wasPaidEarly {
                     events.append(CashEvent(
                         id: "\(bill.id)-\(date)",
                         type: .bill,
@@ -113,7 +114,7 @@ enum BudgetMath {
             )
 
             while date <= cutoff {
-                if includeAnchorDate ? date >= startDate : date > startDate {
+                if shouldIncludeAnchorDate ? date >= startDate : date > startDate {
                     events.append(CashEvent(
                         id: "\(item.id)-\(date)",
                         type: .income,

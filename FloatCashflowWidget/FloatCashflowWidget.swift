@@ -66,7 +66,7 @@ struct TodayRecapWidgetView: View {
             HStack(alignment: .top, spacing: 12) {
                 metric(label: "Cash balance", value: money(snapshot.cashBalance))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                metric(label: "Before next income", value: leftBeforeIncomeText)
+                metric(label: "Before next In", value: leftBeforeIncomeText)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -89,7 +89,7 @@ struct TodayRecapWidgetView: View {
             HStack(alignment: .top, spacing: 12) {
                 metric(label: "Cash balance", value: money(snapshot.cashBalance))
                     .frame(maxWidth: .infinity, alignment: .leading)
-                metric(label: "Before next income", value: leftBeforeIncomeText)
+                metric(label: "Before next In", value: leftBeforeIncomeText)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -168,7 +168,7 @@ struct TodayRecapWidgetView: View {
 
     private var leftBeforeIncomeText: String {
         guard let left = snapshot.leftBeforeNextIncome else {
-            return "No income scheduled"
+            return "No In scheduled"
         }
         return money(left)
     }
