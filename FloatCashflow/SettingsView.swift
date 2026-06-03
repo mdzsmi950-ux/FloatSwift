@@ -531,7 +531,7 @@ struct SettingsView: View {
     private var balanceSection: some View {
         settingsCard(title: "\(account.name) Balance", section: .balance) {
             VStack(alignment: .leading, spacing: Layout.cardContentGap) {
-                guidanceText("Update the cash balance you use for Out items whenever your real balance changes.")
+                guidanceText("Update the cash balance Float starts from whenever your real balance changes.")
                 HStack(spacing: 6) {
                     FloatTextField(
                         placeholder: confirmBalancePlaceholder,

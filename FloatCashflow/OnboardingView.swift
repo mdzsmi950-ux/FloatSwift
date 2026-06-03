@@ -36,7 +36,7 @@ struct OnboardingView: View {
                 "In is where income is added, and Out is where bills, cards, debts, transfers, and other outgoing payments are built.",
                 "Settings keeps accounts, balance, reserve, and general controls like backup, palette, app lock, and onboarding.",
                 isDemoMode
-                    ? "When you are done with the demo, use the demo button to erase the sample budget and start your own."
+                    ? "When you are done with the demo, tap Start Yours to erase the sample budget and start your own."
                     : "You can return to your budget without changing or erasing anything."
             ]
         )

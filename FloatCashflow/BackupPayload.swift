@@ -74,8 +74,10 @@ private extension FloatBudget {
         }
 
         var existingDebtNames = Set(
-            accounts[accountIndex].bills.compactMap { bill in
-                bill.debtDetails == nil ? nil : bill.name.normalizedLegacyDebtName
+            accounts.flatMap { account in
+                account.bills.compactMap { bill in
+                    bill.debtDetails == nil ? nil : bill.name.normalizedLegacyDebtName
+                }
             }
         )
 
