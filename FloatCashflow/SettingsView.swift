@@ -587,7 +587,7 @@ struct SettingsView: View {
             Text("Nothing going out yet.")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.floatText)
-            Text("Add bills, cards, debts, transfers, or other outgoing payments.")
+            Text("Add bills, cards, debts, subscriptions, transfers, or any payment that pulls money out.")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Color.floatTextFaint)
                 .fixedSize(horizontal: false, vertical: true)
@@ -603,13 +603,17 @@ struct SettingsView: View {
             pageSectionTitle("\(account.name) Income")
 
             VStack(spacing: 8) {
-                ForEach(sortedIncomeItems) { income in
-                    itemCard(
-                        title: income.label,
-                        subtitle: "Next: \(labelDate(BudgetMath.nextRecurringDate(startDate: income.startDate, frequency: income.frequency, currentDate: Date.todayString))) · \(income.frequency.rawValue)",
-                        amount: money(income.amount)
-                    ) {
-                        activeSheet = .editIncome(income)
+                if sortedIncomeItems.isEmpty {
+                    inEmptyState
+                } else {
+                    ForEach(sortedIncomeItems) { income in
+                        itemCard(
+                            title: income.label,
+                            subtitle: "Next: \(labelDate(BudgetMath.nextRecurringDate(startDate: income.startDate, frequency: income.frequency, currentDate: Date.todayString))) · \(income.frequency.rawValue)",
+                            amount: money(income.amount)
+                        ) {
+                            activeSheet = .editIncome(income)
+                        }
                     }
                 }
             }
@@ -621,6 +625,22 @@ struct SettingsView: View {
                 activeSheet = .newIncome
             }
         }
+    }
+
+    private var inEmptyState: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Nothing coming in yet.")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.floatText)
+            Text("Add your paycheck or other money coming in so Float knows when your balance refills.")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Color.floatTextFaint)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 12)
+        .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
     }
 
     private var accountsSection: some View {
