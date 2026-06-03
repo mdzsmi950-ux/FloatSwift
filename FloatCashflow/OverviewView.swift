@@ -6,6 +6,14 @@ struct OverviewView: View {
     @State private var measuredDateColumnWidth: CGFloat = 0
     @State private var measuredAmountColumnWidth: CGFloat = 0
 
+    private enum TimelineSpacing {
+        static let rowGap: CGFloat = 8
+        static let balanceTopGap: CGFloat = 8
+        static let balanceBottomGap: CGFloat = 10
+        static let chunkTopGap: CGFloat = 10
+        static let dividerBottomGap: CGFloat = 10
+    }
+
     private var account: FloatAccount {
         store.activeAccount
     }
@@ -172,70 +180,78 @@ struct OverviewView: View {
     }
 
     private var timeline: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(groupedEvents().enumerated()), id: \.element.pay.id) { index, group in
+        let groups = groupedEvents()
+
+        return VStack(spacing: 0) {
+            ForEach(Array(groups.enumerated()), id: \.element.pay.id) { index, group in
                 VStack(spacing: 0) {
-                    rowGrid {
-                        Text(group.pay.label)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(Color.floatText)
-                            .lineLimit(1)
-                            .layoutPriority(1)
-                    } date: {
-                        dateText(group.pay.date)
-                    } amount: {
-                        payAmountText(for: group)
-                    }
-                    .padding(.bottom, group.bills.isEmpty ? 0 : 4)
+                    timelineChunk(for: group)
+                        .padding(.top, index == 0 ? 0 : TimelineSpacing.chunkTopGap)
+                        .padding(.bottom, TimelineSpacing.balanceBottomGap)
 
-                    ForEach(group.bills) { bill in
-                        rowGrid {
-                            HStack(spacing: 4) {
-                                Text(bill.label)
-                                    .font(.system(size: 13))
-                                    .foregroundStyle(Color.floatText)
-                                    .lineLimit(1)
-                                if bill.amount == 0 {
-                                    Text("!")
-                                        .font(.system(size: 13, weight: .bold))
-                                        .foregroundStyle(.red)
-                                }
-                            }
-                        } date: {
-                            dateText(bill.date)
-                        } amount: {
-                            Text("-\(money(bill.amount))")
-                                .font(.system(size: 13, weight: .regular))
-                                .foregroundStyle(Color.floatTextSubtle)
-                                .lineLimit(1)
-                        }
-                        .padding(.vertical, 4)
-                    }
-
-                    if group.pay.id != "starting-balance" {
-                        HStack {
-                            Spacer()
-                            Text(balanceText(group.balance))
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(group.balance >= 0 ? Color.floatAccent : Color.floatDanger)
-                                .fixedSize()
-                                .measureColumnWidth(AmountColumnWidthPreferenceKey.self)
-                                .frame(width: amountColumnWidth, alignment: .trailing)
-                        }
-                        .padding(.top, group.bills.isEmpty ? 2 : 3)
-                        .padding(.bottom, 7)
-                    }
-                }
-                .padding(.top, index == 0 ? 0 : 8)
-                .padding(.bottom, 10)
-                .overlay(alignment: .bottom) {
-                    if group.pay.id != groupedEvents().last?.pay.id {
+                    if group.pay.id != groups.last?.pay.id {
                         Rectangle()
                             .fill(.black.opacity(0.1))
                             .frame(height: 0.5)
+                            .padding(.bottom, TimelineSpacing.dividerBottomGap)
                     }
                 }
-                .padding(.bottom, 10)
+            }
+        }
+    }
+
+    private func timelineChunk(for group: TimelineGroup) -> some View {
+        let showEndingBalance = shouldShowEndingBalance(for: group)
+
+        return VStack(spacing: 0) {
+            rowGrid {
+                Text(group.pay.label)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.floatText)
+                    .lineLimit(1)
+                    .layoutPriority(1)
+            } date: {
+                dateText(group.pay.date)
+            } amount: {
+                payAmountText(for: group)
+            }
+            .padding(.bottom, group.bills.isEmpty && !showEndingBalance ? 0 : TimelineSpacing.rowGap)
+
+            ForEach(Array(group.bills.enumerated()), id: \.element.id) { index, bill in
+                rowGrid {
+                    HStack(spacing: 4) {
+                        Text(bill.label)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Color.floatText)
+                            .lineLimit(1)
+                        if bill.amount == 0 {
+                            Text("!")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundStyle(.red)
+                        }
+                    }
+                } date: {
+                    dateText(bill.date)
+                } amount: {
+                    Text("-\(money(bill.amount))")
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(Color.floatTextSubtle)
+                        .lineLimit(1)
+                }
+                .padding(.bottom, index == group.bills.count - 1 ? 0 : TimelineSpacing.rowGap)
+            }
+
+            if showEndingBalance {
+                HStack {
+                    Spacer()
+                    Text(balanceText(group.balance))
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(group.balance >= 0 ? Color.floatAccent : Color.floatDanger)
+                        .fixedSize()
+                        .measureColumnWidth(AmountColumnWidthPreferenceKey.self)
+                        .frame(width: amountColumnWidth, alignment: .trailing)
+                }
+                .padding(.top, TimelineSpacing.balanceTopGap)
             }
         }
     }
@@ -282,13 +298,17 @@ struct OverviewView: View {
             .foregroundStyle(Color.floatTextSubtle)
     }
 
-    private func payAmountText(for group: (pay: CashEvent, bills: [CashEvent], income: Double, balance: Double)) -> some View {
+    private func shouldShowEndingBalance(for group: TimelineGroup) -> Bool {
+        group.pay.id != "starting-balance" || !group.bills.isEmpty
+    }
+
+    private func payAmountText(for group: TimelineGroup) -> some View {
         Text(group.pay.id == "starting-balance" ? balanceText(group.income) : incomeAmountText(for: group))
             .font(.system(size: 13, weight: group.pay.id == "starting-balance" ? .semibold : .regular))
             .foregroundStyle(group.pay.id == "starting-balance" ? Color.floatAccent : Color.floatTextSubtle)
     }
 
-    private func incomeAmountText(for group: (pay: CashEvent, bills: [CashEvent], income: Double, balance: Double)) -> String {
+    private func incomeAmountText(for group: TimelineGroup) -> String {
         if group.pay.id == "starting-balance" {
             return money(group.income)
         }
@@ -304,7 +324,7 @@ struct OverviewView: View {
         return date.formatted(.dateTime.month(.wide).day())
     }
 
-    private func groupedEvents() -> [(pay: CashEvent, bills: [CashEvent], income: Double, balance: Double)] {
+    private func groupedEvents() -> [TimelineGroup] {
         let visibleEvents = events.filter { $0.label != "Confirmed balance" }
         let income = visibleEvents.filter { $0.type == .income }.sorted { $0.date < $1.date }
         let bills = visibleEvents.filter { $0.type == .bill }.sorted { $0.date < $1.date }
@@ -314,7 +334,7 @@ struct OverviewView: View {
         let startingBills = bills.filter { $0.date < firstIncomeDate }
         running -= startingBills.reduce(0) { $0 + $1.amount }
 
-        let startingGroup = (
+        let startingGroup = TimelineGroup(
             pay: CashEvent(
                 id: "starting-balance",
                 type: .income,
@@ -332,11 +352,18 @@ struct OverviewView: View {
             let groupBills = bills.filter { $0.date >= pay.date && $0.date < end }
             let spent = groupBills.reduce(0) { $0 + $1.amount }
             running += pay.amount - spent
-            return (pay: pay, bills: groupBills, income: pay.amount, balance: running)
+            return TimelineGroup(pay: pay, bills: groupBills, income: pay.amount, balance: running)
         }
 
         return [startingGroup] + incomeGroups
     }
+}
+
+private struct TimelineGroup {
+    let pay: CashEvent
+    let bills: [CashEvent]
+    let income: Double
+    let balance: Double
 }
 
 private struct DateColumnWidthPreferenceKey: PreferenceKey {
