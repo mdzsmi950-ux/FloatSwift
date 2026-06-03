@@ -554,11 +554,12 @@ struct SettingsView: View {
     }
 
     private var billsSection: some View {
-        settingsCard(title: "\(account.name) Outgoing Payments", section: .bills) {
-            VStack(spacing: 2) {
-                guidanceText("Add all money going out: bills, cards, debts, subscriptions, transfers out, and other outgoing payments.")
+        VStack(alignment: .leading, spacing: Layout.sectionGap) {
+            pageSectionTitle("\(account.name) Outgoing Payments")
+
+            VStack(spacing: 8) {
                 ForEach(sortedOutItems) { bill in
-                    itemRow(
+                    itemCard(
                         title: bill.name,
                         subtitle: "Next: \(labelDate(BudgetMath.nextUnpaidBillDate(bill: bill, paidEarlyBills: account.paidEarlyBills))) · \(bill.frequency.rawValue)",
                         amount: money(bill.amount)
@@ -566,19 +567,24 @@ struct SettingsView: View {
                         activeSheet = .editBill(bill)
                     }
                 }
-                addActionRow(title: "Add Outgoing Payment") {
-                    activeSheet = .newBill
-                }
+            }
+
+            addItemCard(
+                title: "Add Outgoing Payment",
+                helper: "Add all money going out: bills, cards, debts, subscriptions, transfers out, and other outgoing payments."
+            ) {
+                activeSheet = .newBill
             }
         }
     }
 
     private var incomeSection: some View {
-        settingsCard(title: "\(account.name) Income", section: .income) {
-            VStack(spacing: 2) {
-                guidanceText("Add all money coming in so Float knows when money arrives.")
+        VStack(alignment: .leading, spacing: Layout.sectionGap) {
+            pageSectionTitle("\(account.name) Income")
+
+            VStack(spacing: 8) {
                 ForEach(sortedIncomeItems) { income in
-                    itemRow(
+                    itemCard(
                         title: income.label,
                         subtitle: "Next: \(labelDate(BudgetMath.nextRecurringDate(startDate: income.startDate, frequency: income.frequency, currentDate: Date.todayString))) · \(income.frequency.rawValue)",
                         amount: money(income.amount)
@@ -586,9 +592,13 @@ struct SettingsView: View {
                         activeSheet = .editIncome(income)
                     }
                 }
-                addActionRow(title: "Add Income") {
-                    activeSheet = .newIncome
-                }
+            }
+
+            addItemCard(
+                title: "Add Income",
+                helper: "Add all money coming in so Float knows when money arrives."
+            ) {
+                activeSheet = .newIncome
             }
         }
     }
@@ -1052,6 +1062,37 @@ struct SettingsView: View {
         .buttonStyle(.plain)
     }
 
+    private func pageSectionTitle(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(Color.floatText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 2)
+    }
+
+    private func addItemCard(title: String, helper: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus")
+                        .font(.system(size: 12, weight: .bold))
+                    Text(title)
+                        .font(.system(size: 13, weight: .semibold))
+                    Spacer()
+                }
+                .foregroundStyle(Color.floatText)
+
+                guidanceText(helper)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+            .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
+        }
+        .buttonStyle(.plain)
+    }
+
     private struct SettingsCompactButton: View {
         var title: String
         var systemImage: String?
@@ -1147,6 +1188,13 @@ struct SettingsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .padding(.vertical, Layout.rowVerticalPadding)
+    }
+
+    private func itemCard(title: String, subtitle: String, amount: String, edit: @escaping () -> Void) -> some View {
+        itemRow(title: title, subtitle: subtitle, amount: amount, edit: edit)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .floatCardSurface(cornerRadius: 18, fillOpacity: 0.82)
     }
 
     private func toggle(_ section: SettingsSection) {
