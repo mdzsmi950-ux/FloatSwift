@@ -9,7 +9,6 @@ struct SettingsView: View {
     var goToOverview: () -> Void
     var startOwnBudget: () -> Void
     @ObservedObject var privacyLock: PrivacyLockStore
-    @StateObject private var debtPayoffStore = DebtPayoffStore()
 
     @State private var expandedSections = Set(SettingsSection.allCases)
     @State private var confirmBalanceText = ""
@@ -42,6 +41,22 @@ struct SettingsView: View {
 
     private var account: FloatAccount {
         store.activeAccount
+    }
+
+    private var sortedIncomeItems: [BudgetIncome] {
+        account.income
+            .filter { $0.label != "Confirmed balance" }
+            .sorted {
+                BudgetMath.nextRecurringDate(startDate: $0.startDate, frequency: $0.frequency, currentDate: Date.todayString) <
+                    BudgetMath.nextRecurringDate(startDate: $1.startDate, frequency: $1.frequency, currentDate: Date.todayString)
+            }
+    }
+
+    private var sortedOutItems: [BudgetBill] {
+        account.bills.sorted {
+            BudgetMath.nextUnpaidBillDate(bill: $0, paidEarlyBills: account.paidEarlyBills) <
+                BudgetMath.nextUnpaidBillDate(bill: $1, paidEarlyBills: account.paidEarlyBills)
+        }
     }
 
     private var backupStatusText: String {
@@ -108,7 +123,6 @@ struct SettingsView: View {
                         incomeSection
                     case .out:
                         billsSection
-                        debtsSection
                         debtPayoffSection
                     case .settings:
                         setupGuide
@@ -159,58 +173,20 @@ struct SettingsView: View {
         .sheet(item: $activeSheet) { sheet in
             switch sheet {
             case .newBill:
-                BillEditor(accountColor: account.color) { name, amount, date, frequency in
-                    store.addBill(name: name, amount: amount, startDate: date, frequency: frequency)
+                BillEditor(accountColor: account.color) { name, amount, date, frequency, debtDetails in
+                    store.addBill(name: name, amount: amount, startDate: date, frequency: frequency, debtDetails: debtDetails)
                 }
-                .presentationDetents([.fraction(0.62), .large])
+                .presentationDetents([.fraction(0.76), .large])
                 .presentationDragIndicator(.visible)
             case .editBill(let bill):
-                BillEditor(accountColor: account.color, bill: bill) { name, amount, date, frequency in
-                    store.updateBill(bill, name: name, amount: amount, startDate: date, frequency: frequency)
+                BillEditor(accountColor: account.color, bill: bill) { name, amount, date, frequency, debtDetails in
+                    store.updateBill(bill, name: name, amount: amount, startDate: date, frequency: frequency, debtDetails: debtDetails)
                 } onDelete: {
                     store.deleteBill(bill)
                 } onPaidEarly: {
                     store.payBillEarly(bill)
                 }
-                .presentationDetents([.fraction(0.72), .large])
-                .presentationDragIndicator(.visible)
-            case .newDebt:
-                DebtBillEditor(accountColor: account.color) { name, starting, principal, accrued, balanceDate, apr, minimum, monthly, paymentDate in
-                    store.addDebt(
-                        name: name,
-                        startingBalance: starting,
-                        currentPrincipal: principal,
-                        accruedInterest: accrued,
-                        balanceDate: balanceDate,
-                        interestRateAPR: apr,
-                        minimumPayment: minimum,
-                        plannedMonthlyPayment: monthly,
-                        nextPaymentDate: paymentDate
-                    )
-                    debtPayoffStore.syncFromBudget(store.budget)
-                }
                 .presentationDetents([.fraction(0.86), .large])
-                .presentationDragIndicator(.visible)
-            case .editDebt(let bill):
-                DebtBillEditor(accountColor: account.color, bill: bill) { name, starting, principal, accrued, balanceDate, apr, minimum, monthly, paymentDate in
-                    store.updateDebt(
-                        bill,
-                        name: name,
-                        startingBalance: starting,
-                        currentPrincipal: principal,
-                        accruedInterest: accrued,
-                        balanceDate: balanceDate,
-                        interestRateAPR: apr,
-                        minimumPayment: minimum,
-                        plannedMonthlyPayment: monthly,
-                        nextPaymentDate: paymentDate
-                    )
-                    debtPayoffStore.syncFromBudget(store.budget)
-                } onDelete: {
-                    store.deleteBill(bill)
-                    debtPayoffStore.syncFromBudget(store.budget)
-                }
-                .presentationDetents([.fraction(0.9), .large])
                 .presentationDragIndicator(.visible)
             case .newIncome:
                 IncomeEditor(accountColor: account.color) { label, amount, date, frequency in
@@ -258,9 +234,7 @@ struct SettingsView: View {
             Button("Import", role: .destructive) {
                 do {
                     if let pendingImportData {
-                        if let debtPayoff = try store.importBackup(data: pendingImportData) {
-                            debtPayoffStore.replaceLedger(debtPayoff)
-                        }
+                        try store.importBackup(data: pendingImportData)
                         importMessage = "Backup imported."
                     }
                 } catch {
@@ -269,7 +243,7 @@ struct SettingsView: View {
                 pendingImportData = nil
             }
         } message: {
-            Text("Importing this backup will replace your current accounts, balances, income, bills, cards, debts, reserve, and debt payoff data. Export a backup first if you want to keep a copy of your current setup.")
+            Text("Importing this backup will replace your current accounts, balances, income, bills, cards, debts, and reserve. Export a backup first if you want to keep a copy of your current setup.")
         }
         .onReceive(NotificationCenter.default.publisher(for: .floatStartSetup)) { _ in
             firstAccountSetupComplete = false
@@ -391,10 +365,6 @@ struct SettingsView: View {
                     expandedSections.insert(.bills)
                     activeSheet = .newBill
                 }
-                setupActionButton("Add Debt") {
-                    expandedSections.insert(.debts)
-                    activeSheet = .newDebt
-                }
             case .overview:
                 setupActionButton("View Overview") {
                     firstSetupComplete = true
@@ -433,32 +403,35 @@ struct SettingsView: View {
             .clipShape(RoundedRectangle(cornerRadius: 9))
     }
 
+    @ViewBuilder
     private var debtPayoffSection: some View {
-        let summary = DebtPayoffMath.summary(for: debtOverviewItems)
+        if debtOverviewItems.isEmpty == false {
+            let summary = DebtPayoffMath.summary(for: debtOverviewItems)
 
-        return settingsCard(title: "Debt Overview", section: .debtPayoff) {
-            VStack(alignment: .leading, spacing: Layout.cardContentGap) {
-                guidanceText("Calculated from the debt payments listed in Out.")
+            settingsCard(title: "Debt Overview", section: .debtPayoff) {
+                VStack(alignment: .leading, spacing: Layout.cardContentGap) {
+                    guidanceText("Calculated from the debt payments listed in Out.")
 
-                HStack(alignment: .top, spacing: 12) {
+                    HStack(alignment: .top, spacing: 12) {
+                        debtOverviewMetric(
+                            title: "Total Debt",
+                            value: money(summary.totalDebt),
+                            color: .floatText
+                        )
+
+                        debtOverviewMetric(
+                            title: "Monthly Payments",
+                            value: money(summary.monthlyPayments),
+                            color: .floatTextMid
+                        )
+                    }
+
                     debtOverviewMetric(
-                        title: "Total Debt",
-                        value: money(summary.totalDebt),
-                        color: .floatText
-                    )
-
-                    debtOverviewMetric(
-                        title: "Monthly Payments",
-                        value: money(summary.monthlyPayments),
-                        color: .floatTextMid
+                        title: "Estimated Debt-Free Date",
+                        value: debtOverviewDateText(summary),
+                        color: summary.canEstimate ? .floatAccent : .floatWarning
                     )
                 }
-
-                debtOverviewMetric(
-                    title: "Estimated Debt-Free Date",
-                    value: debtOverviewDateText(summary),
-                    color: summary.canEstimate ? .floatAccent : .floatWarning
-                )
             }
         }
     }
@@ -583,8 +556,8 @@ struct SettingsView: View {
     private var billsSection: some View {
         settingsCard(title: "\(account.name) Outgoing Payments", section: .bills) {
             VStack(spacing: 2) {
-                guidanceText("Add bills, cards, subscriptions, transfers out, and other outgoing payments so Float knows what money is leaving.")
-                ForEach(account.bills.filter { $0.debtDetails == nil }) { bill in
+                guidanceText("Add all money going out: bills, cards, debts, subscriptions, transfers out, and other outgoing payments.")
+                ForEach(sortedOutItems) { bill in
                     itemRow(
                         title: bill.name,
                         subtitle: "Next: \(labelDate(BudgetMath.nextUnpaidBillDate(bill: bill, paidEarlyBills: account.paidEarlyBills))) · \(bill.frequency.rawValue)",
@@ -592,29 +565,9 @@ struct SettingsView: View {
                     ) {
                         activeSheet = .editBill(bill)
                     }
-		                }
+                }
                 addActionRow(title: "Add Outgoing Payment") {
                     activeSheet = .newBill
-                }
-		            }
-        }
-    }
-
-    private var debtsSection: some View {
-        settingsCard(title: "\(account.name) Debts", section: .debts) {
-            VStack(spacing: 2) {
-                guidanceText("Add long-term debts you are paying down, like student loans, car loans, or personal loans.")
-                ForEach(account.bills.filter { $0.debtDetails != nil }) { bill in
-                    itemRow(
-                        title: bill.name,
-                        subtitle: "Next: \(labelDate(BudgetMath.nextUnpaidBillDate(bill: bill, paidEarlyBills: account.paidEarlyBills))) · monthly",
-                        amount: money(bill.amount)
-                    ) {
-                        activeSheet = .editDebt(bill)
-                    }
-                }
-                addActionRow(title: "Add Debt") {
-                    activeSheet = .newDebt
                 }
             }
         }
@@ -623,8 +576,8 @@ struct SettingsView: View {
     private var incomeSection: some View {
         settingsCard(title: "\(account.name) Income", section: .income) {
             VStack(spacing: 2) {
-                guidanceText("Add your paycheck or other regular income so Float knows when money comes in.")
-                ForEach(account.income.filter { $0.label != "Confirmed balance" }) { income in
+                guidanceText("Add all money coming in so Float knows when money arrives.")
+                ForEach(sortedIncomeItems) { income in
                     itemRow(
                         title: income.label,
                         subtitle: "Next: \(labelDate(BudgetMath.nextRecurringDate(startDate: income.startDate, frequency: income.frequency, currentDate: Date.todayString))) · \(income.frequency.rawValue)",
@@ -741,7 +694,7 @@ struct SettingsView: View {
             }
 
             settingsCard(title: "Backup", section: .backup) {
-                generalGroup("Backup file", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, bills, debts, reserve, and debt payoff data.") {
+                generalGroup("Backup file", helper: "Export a backup to save your current setup.\nImporting a backup will replace your current accounts, balances, income, bills, debts, and reserve.") {
                     HStack(spacing: 8) {
                         SettingsCompactButton(title: "Export Backup") {
                             prepareExport()
@@ -1216,7 +1169,6 @@ struct SettingsView: View {
             expandedSections.insert(.income)
         case .obligation:
             expandedSections.insert(.bills)
-            expandedSections.insert(.debts)
         case .overview:
             break
         }
@@ -1232,7 +1184,7 @@ struct SettingsView: View {
 
     private func prepareExport() {
         do {
-            exportDocument = try BackupDocument(budget: store.budget, debtPayoff: debtPayoffStore.ledger)
+            exportDocument = try BackupDocument(budget: store.budget)
             showExportPicker = true
         } catch {
             importMessage = "Export failed."

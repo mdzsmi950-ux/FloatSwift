@@ -24,10 +24,7 @@
 		100000000000000000000016 /* PrivacyLockStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000115 /* PrivacyLockStore.swift */; };
 		100000000000000000000017 /* PrivacyLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000116 /* PrivacyLockView.swift */; };
 		100000000000000000000018 /* DebtPayoffModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000117 /* DebtPayoffModels.swift */; };
-		100000000000000000000019 /* DebtPayoffStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000118 /* DebtPayoffStore.swift */; };
-		100000000000000000000020 /* DebtPayoffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000119 /* DebtPayoffView.swift */; };
 		100000000000000000000022 /* BackupPayload.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000120 /* BackupPayload.swift */; };
-		100000000000000000000023 /* DebtSnapshotValidation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000121 /* DebtSnapshotValidation.swift */; };
 		100000000000000000000025 /* QuickActionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000123 /* QuickActionManager.swift */; };
 		100000000000000000000026 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000124 /* WidgetSnapshot.swift */; };
 		100000000000000000000027 /* SettingsTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000127 /* SettingsTypes.swift */; };
@@ -86,10 +83,7 @@
 		100000000000000000000115 /* PrivacyLockStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLockStore.swift; sourceTree = "<group>"; };
 		100000000000000000000116 /* PrivacyLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyLockView.swift; sourceTree = "<group>"; };
 		100000000000000000000117 /* DebtPayoffModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtPayoffModels.swift; sourceTree = "<group>"; };
-		100000000000000000000118 /* DebtPayoffStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtPayoffStore.swift; sourceTree = "<group>"; };
-		100000000000000000000119 /* DebtPayoffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtPayoffView.swift; sourceTree = "<group>"; };
 		100000000000000000000120 /* BackupPayload.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupPayload.swift; sourceTree = "<group>"; };
-		100000000000000000000121 /* DebtSnapshotValidation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebtSnapshotValidation.swift; sourceTree = "<group>"; };
 		100000000000000000000123 /* QuickActionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickActionManager.swift; sourceTree = "<group>"; };
 		100000000000000000000124 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
 		100000000000000000000125 /* FloatCashflow.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = FloatCashflow.entitlements; sourceTree = "<group>"; };
@@ -153,10 +147,7 @@
 				100000000000000000000115 /* PrivacyLockStore.swift */,
 				100000000000000000000116 /* PrivacyLockView.swift */,
 				100000000000000000000117 /* DebtPayoffModels.swift */,
-				100000000000000000000118 /* DebtPayoffStore.swift */,
-				100000000000000000000119 /* DebtPayoffView.swift */,
 				100000000000000000000120 /* BackupPayload.swift */,
-				100000000000000000000121 /* DebtSnapshotValidation.swift */,
 				100000000000000000000123 /* QuickActionManager.swift */,
 				100000000000000000000124 /* WidgetSnapshot.swift */,
 				100000000000000000000125 /* FloatCashflow.entitlements */,
@@ -306,10 +297,7 @@
 				100000000000000000000016 /* PrivacyLockStore.swift in Sources */,
 				100000000000000000000017 /* PrivacyLockView.swift in Sources */,
 				100000000000000000000018 /* DebtPayoffModels.swift in Sources */,
-				100000000000000000000019 /* DebtPayoffStore.swift in Sources */,
-				100000000000000000000020 /* DebtPayoffView.swift in Sources */,
 				100000000000000000000022 /* BackupPayload.swift in Sources */,
-				100000000000000000000023 /* DebtSnapshotValidation.swift in Sources */,
 				100000000000000000000025 /* QuickActionManager.swift in Sources */,
 				100000000000000000000026 /* WidgetSnapshot.swift in Sources */,
 			);

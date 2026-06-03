@@ -6,7 +6,6 @@ enum SettingsSection: CaseIterable, Hashable {
     case balance
     case income
     case bills
-    case debts
     case reserve
     case general
     case palette
@@ -112,8 +111,6 @@ enum SetupStep {
 enum SettingsSheet: Identifiable {
     case newBill
     case editBill(BudgetBill)
-    case newDebt
-    case editDebt(BudgetBill)
     case newIncome
     case editIncome(BudgetIncome)
     case newAccount
@@ -123,8 +120,6 @@ enum SettingsSheet: Identifiable {
         switch self {
         case .newBill: "new-bill"
         case .editBill(let bill): "edit-bill-\(bill.id)"
-        case .newDebt: "new-debt"
-        case .editDebt(let bill): "edit-debt-\(bill.id)"
         case .newIncome: "new-income"
         case .editIncome(let income): "edit-income-\(income.id)"
         case .newAccount: "new-account"
@@ -142,10 +137,10 @@ struct BackupDocument: FileDocument {
         self.data = data
     }
 
-    init(budget: FloatBudget, debtPayoff: DebtPayoffLedger) throws {
+    init(budget: FloatBudget) throws {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        data = try encoder.encode(FloatBackupPayload(budget: budget, debtPayoff: debtPayoff))
+        data = try encoder.encode(budget)
     }
 
     init(configuration: ReadConfiguration) throws {

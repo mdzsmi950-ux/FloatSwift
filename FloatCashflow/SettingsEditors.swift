@@ -5,7 +5,7 @@ struct BillEditor: View {
 
     var accountColor: String
     var bill: BudgetBill?
-    var onSave: (String, Double, Date, Frequency) -> Void
+    var onSave: (String, Double, Date, Frequency, BudgetDebtDetails?) -> Void
     var onDelete: (() -> Void)?
     var onPaidEarly: (() -> Void)?
 
@@ -17,11 +17,18 @@ struct BillEditor: View {
     @State private var validationError: String?
     @State private var frequency: Frequency
     @State private var showDeleteAlert = false
+    @State private var isDebt: Bool
+    @State private var startingBalance: String
+    @State private var currentPrincipal: String
+    @State private var accruedInterest: String
+    @State private var balanceDate: Date
+    @State private var apr: String
+    @State private var minimumPayment: String
 
     init(
         accountColor: String,
         bill: BudgetBill? = nil,
-        onSave: @escaping (String, Double, Date, Frequency) -> Void,
+        onSave: @escaping (String, Double, Date, Frequency, BudgetDebtDetails?) -> Void,
         onDelete: (() -> Void)? = nil,
         onPaidEarly: (() -> Void)? = nil
     ) {
@@ -30,16 +37,24 @@ struct BillEditor: View {
         self.onSave = onSave
         self.onDelete = onDelete
         self.onPaidEarly = onPaidEarly
+        let details = bill?.debtDetails
         _name = State(initialValue: bill?.name ?? "")
         _amount = State(initialValue: bill.map { String($0.amount) } ?? "")
         _date = State(initialValue: bill.flatMap { Date.yyyyMMdd.date(from: $0.startDate) } ?? Date())
         _dateWasChosen = State(initialValue: bill != nil)
         _frequency = State(initialValue: bill?.frequency ?? .monthly)
+        _isDebt = State(initialValue: details != nil)
+        _startingBalance = State(initialValue: details.map { String($0.startingBalance) } ?? "")
+        _currentPrincipal = State(initialValue: details.map { String($0.currentPrincipal) } ?? "")
+        _accruedInterest = State(initialValue: details.map { String($0.accruedInterest) } ?? "")
+        _balanceDate = State(initialValue: details.flatMap { Date.yyyyMMdd.date(from: $0.balanceDate) } ?? Date())
+        _apr = State(initialValue: details.map { String($0.interestRateAPR) } ?? "")
+        _minimumPayment = State(initialValue: details.map { String($0.minimumPayment) } ?? "")
     }
 
     var body: some View {
-        EditorShell(accountColor: accountColor, title: bill == nil ? "New Bill" : "Edit Bill") {
-            labeled("Bill name") {
+        EditorShell(accountColor: accountColor, title: bill == nil ? "New Out" : "Edit Out") {
+            labeled("Name") {
                 FloatTextField(placeholder: "", text: $name)
             }
             labeled("Amount") {
@@ -54,6 +69,45 @@ struct BillEditor: View {
                     wasChosen: $dateWasChosen,
                     showMissingState: saveAttempted && !dateWasChosen
                 )
+            }
+            labeled("Is this a debt?") {
+                Toggle(isOn: $isDebt) {
+                    Text(isDebt ? "Debt" : "Normal Out")
+                        .font(.system(size: 14))
+                        .foregroundStyle(Color.floatText)
+                }
+                .tint(Color.floatText)
+                .padding(.horizontal, 12)
+                .frame(height: 40)
+                .background(.white)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.floatBorder, lineWidth: 0.5)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+
+            if isDebt {
+                payoffSummary
+
+                labeled("Starting Balance") {
+                    FloatTextField(placeholder: "93462.17", text: $startingBalance, keyboard: .decimalPad)
+                }
+                labeled("Interest Rate") {
+                    FloatTextField(placeholder: "4.485", text: $apr, keyboard: .decimalPad)
+                }
+                labeled("Minimum Payment") {
+                    FloatTextField(placeholder: "0.00", text: $minimumPayment, keyboard: .decimalPad)
+                }
+                labeled("Current Principal") {
+                    FloatTextField(placeholder: "70803.93", text: $currentPrincipal, keyboard: .decimalPad)
+                }
+                labeled("Accrued Interest") {
+                    FloatTextField(placeholder: "243.60", text: $accruedInterest, keyboard: .decimalPad)
+                }
+                labeled("Balance Date") {
+                    editorDatePicker(date: $balanceDate)
+                }
             }
 
             if let onPaidEarly {
@@ -82,27 +136,144 @@ struct BillEditor: View {
                         return
                     }
                     guard let parsedAmount = parseAmount(amount) else {
-                        validationError = "Enter a valid bill amount."
+                        validationError = "Enter a valid Out amount."
                         return
                     }
                     guard dateWasChosen else {
-                        validationError = "Choose a bill date."
+                        validationError = "Choose an Out date."
                         return
                     }
+                    let debtDetails: BudgetDebtDetails?
+                    if isDebt {
+                        guard let details = makeDebtDetails() else { return }
+                        debtDetails = details
+                    } else {
+                        debtDetails = nil
+                    }
                     validationError = nil
-                    onSave(nextName, parsedAmount, date, frequency)
+                    onSave(nextName, parsedAmount, date, frequency, debtDetails)
                     dismiss()
                 }
             }
             settingsFieldError(validationError)
         }
-        .alert("Delete \(bill?.name ?? "Bill")?", isPresented: $showDeleteAlert) {
+        .alert("Delete \(bill?.name ?? "Out")?", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Delete", role: .destructive) {
                 onDelete?()
                 dismiss()
             }
         }
+    }
+
+    private var payoffSummary: some View {
+        let balance = (Double(currentPrincipal) ?? bill?.debtDetails?.currentPrincipal ?? 0) +
+            (Double(accruedInterest) ?? bill?.debtDetails?.accruedInterest ?? 0)
+        let payment = Double(amount) ?? bill?.amount ?? 0
+        let rate = Double(apr) ?? bill?.debtDetails?.interestRateAPR ?? 0
+        let item = DebtPayoffItem(
+            id: bill?.id ?? "draft",
+            name: name,
+            startingBalance: Double(startingBalance) ?? bill?.debtDetails?.startingBalance ?? 0,
+            currentPrincipal: Double(currentPrincipal) ?? bill?.debtDetails?.currentPrincipal ?? 0,
+            accruedInterest: Double(accruedInterest) ?? bill?.debtDetails?.accruedInterest ?? 0,
+            balanceDate: balanceDate.ymdString,
+            interestRateAPR: rate,
+            minimumPayment: Double(minimumPayment) ?? bill?.debtDetails?.minimumPayment ?? 0,
+            plannedMonthlyPayment: payment,
+            nextPaymentDate: date.ymdString
+        )
+        let months = DebtPayoffMath.monthsToPayoff(item)
+
+        return VStack(alignment: .leading, spacing: 8) {
+            Text("Debt Details")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Color.floatTextFaint)
+                .tracking(0.8)
+                .textCase(.uppercase)
+
+            HStack(alignment: .top) {
+                detailMetric("Current Debt", money(balance))
+                Spacer()
+                detailMetric("Payoff", payoffText(months))
+            }
+        }
+        .padding(12)
+        .background(.white.opacity(0.52))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(.black.opacity(0.06), lineWidth: 0.5)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func detailMetric(_ label: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(label)
+                .font(.system(size: 11))
+                .foregroundStyle(Color.floatTextFaint)
+            Text(value)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.floatText)
+        }
+    }
+
+    private func payoffText(_ months: Int?) -> String {
+        guard let months else { return "Not enough" }
+        if months == 0 { return "Paid off" }
+        let payoffDate = Calendar.current.date(byAdding: .month, value: months, to: date) ?? date
+        return labelDate(payoffDate.ymdString)
+    }
+
+    private func makeDebtDetails() -> BudgetDebtDetails? {
+        guard let starting = parseAmount(startingBalance) else {
+            validationError = "Enter a valid starting balance."
+            return nil
+        }
+        guard let principal = parseAmount(currentPrincipal) else {
+            validationError = "Enter a valid current principal."
+            return nil
+        }
+        guard let interest = parseAmount(accruedInterest) else {
+            validationError = "Enter valid accrued interest."
+            return nil
+        }
+        guard let rate = parseAmount(apr) else {
+            validationError = "Enter a valid interest rate."
+            return nil
+        }
+        guard let minimum = parseAmount(minimumPayment) else {
+            validationError = "Enter a valid minimum payment."
+            return nil
+        }
+
+        return BudgetDebtDetails(
+            startingBalance: starting,
+            currentPrincipal: principal,
+            accruedInterest: interest,
+            balanceDate: balanceDate.ymdString,
+            interestRateAPR: rate,
+            minimumPayment: minimum
+        )
+    }
+
+    private func editorDatePicker(date: Binding<Date>) -> some View {
+        DatePicker("", selection: date, displayedComponents: .date)
+            .labelsHidden()
+            .datePickerStyle(.compact)
+            .font(.system(size: 14))
+            .tint(Color.floatText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .contentShape(Rectangle())
+            .padding(.horizontal, 12)
+            .frame(height: 40)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.floatBorder, lineWidth: 0.5)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -199,316 +370,6 @@ struct IncomeEditor: View {
                 dismiss()
             }
         }
-    }
-}
-
-struct DebtBillEditor: View {
-    @Environment(\.dismiss) private var dismiss
-
-    var accountColor: String
-    var bill: BudgetBill?
-    var onSave: (String, Double, Double, Double, Date, Double, Double, Double, Date) -> Void
-    var onDelete: (() -> Void)?
-
-    @State private var name: String
-    @State private var startingBalance: String
-    @State private var currentPrincipal: String
-    @State private var accruedInterest: String
-    @State private var balanceDate: Date
-    @State private var apr: String
-    @State private var minimumPayment: String
-    @State private var monthlyPayment: String
-    @State private var paymentDate: Date
-    @State private var validationError: String?
-    @State private var showDeleteAlert = false
-    @State private var showIncompleteSnapshotAlert = false
-    @State private var showLargeBalanceAlert = false
-
-    init(
-        accountColor: String,
-        bill: BudgetBill? = nil,
-        onSave: @escaping (String, Double, Double, Double, Date, Double, Double, Double, Date) -> Void,
-        onDelete: (() -> Void)? = nil
-    ) {
-        self.accountColor = accountColor
-        self.bill = bill
-        self.onSave = onSave
-        self.onDelete = onDelete
-
-        let details = bill?.debtDetails
-        _name = State(initialValue: bill?.name ?? "")
-        _startingBalance = State(initialValue: details.map { String($0.startingBalance) } ?? "")
-        _currentPrincipal = State(initialValue: details.map { String($0.currentPrincipal) } ?? "")
-        _accruedInterest = State(initialValue: details.map { String($0.accruedInterest) } ?? "")
-        _balanceDate = State(initialValue: details.flatMap { Date.yyyyMMdd.date(from: $0.balanceDate) } ?? Date())
-        _apr = State(initialValue: details.map { String($0.interestRateAPR) } ?? "")
-        _minimumPayment = State(initialValue: details.map { String($0.minimumPayment) } ?? "")
-        _monthlyPayment = State(initialValue: bill.map { String($0.amount) } ?? "")
-        _paymentDate = State(initialValue: bill.flatMap { Date.yyyyMMdd.date(from: $0.startDate) } ?? Date())
-    }
-
-    var body: some View {
-        EditorShell(accountColor: accountColor, title: bill == nil ? "New Debt" : "Debt Details") {
-            payoffSummary
-
-            labeled("Debt Name") {
-                FloatTextField(placeholder: "Student Loan", text: $name)
-            }
-            labeled("Starting Balance") {
-                FloatTextField(placeholder: "93462.17", text: $startingBalance, keyboard: .decimalPad)
-            }
-            labeled("Payment Date") {
-                editorDatePicker(date: $paymentDate)
-            }
-            labeled("Interest Rate") {
-                FloatTextField(placeholder: "4.485", text: $apr, keyboard: .decimalPad)
-            }
-            labeled("Minimum Payment") {
-                FloatTextField(placeholder: "0.00", text: $minimumPayment, keyboard: .decimalPad)
-            }
-            labeled("Current Principal") {
-                FloatTextField(placeholder: "70803.93", text: $currentPrincipal, keyboard: .decimalPad)
-            }
-            labeled("Accrued Interest") {
-                FloatTextField(placeholder: "243.60", text: $accruedInterest, keyboard: .decimalPad)
-            }
-            labeled("Balance Date") {
-                editorDatePicker(date: $balanceDate)
-            }
-            labeled("Monthly Payment") {
-                FloatTextField(placeholder: "0.00", text: $monthlyPayment, keyboard: .decimalPad)
-            }
-
-            HStack(spacing: 10) {
-                if onDelete != nil {
-                    SheetActionButton(title: "Delete", fill: .secondary) {
-                        showDeleteAlert = true
-                    }
-                } else {
-                    SheetActionButton(title: "Cancel", fill: .secondary) {
-                        cancel()
-                    }
-                }
-
-                SheetActionButton(title: "Confirm", fill: .primary) {
-                    attemptSave()
-                }
-            }
-            settingsFieldError(validationError)
-        }
-        .interactiveDismissDisabled(snapshotHasChanges)
-        .alert("Delete \(bill?.name ?? "Debt")?", isPresented: $showDeleteAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive) {
-                onDelete?()
-                dismiss()
-            }
-        }
-        .alert("Update Balance Snapshot", isPresented: $showIncompleteSnapshotAlert) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Current Principal, Accrued Interest, and Balance Date need to be updated together.")
-        }
-        .alert("Balance Looks Far Off", isPresented: $showLargeBalanceAlert) {
-            Button("Review", role: .cancel) {}
-            Button("Save Anyway") {
-                saveAndDismiss()
-            }
-        } message: {
-            Text("The new principal plus accrued interest is far from the previous balance snapshot.")
-        }
-    }
-
-    private var payoffSummary: some View {
-        let balance = (Double(currentPrincipal) ?? bill?.debtDetails?.currentPrincipal ?? 0) +
-            (Double(accruedInterest) ?? bill?.debtDetails?.accruedInterest ?? 0)
-        let payment = Double(monthlyPayment) ?? bill?.amount ?? 0
-        let rate = Double(apr) ?? bill?.debtDetails?.interestRateAPR ?? 0
-        let months = estimatedMonths(balance: balance, payment: payment, apr: rate)
-
-        return VStack(alignment: .leading, spacing: 8) {
-            Text("Details")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.floatTextFaint)
-                .tracking(0.8)
-                .textCase(.uppercase)
-
-            HStack(alignment: .top) {
-                detailMetric("Current Debt", money(balance))
-                Spacer()
-                detailMetric("Payoff", payoffText(months))
-            }
-        }
-        .padding(12)
-        .background(.white.opacity(0.52))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(.black.opacity(0.06), lineWidth: 0.5)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-    }
-
-    private func detailMetric(_ label: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(label)
-                .font(.system(size: 11))
-                .foregroundStyle(Color.floatTextFaint)
-            Text(value)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color.floatText)
-        }
-    }
-
-    private func payoffText(_ months: Int?) -> String {
-        guard let months else { return "Not enough" }
-        if months == 0 { return "Paid off" }
-        let date = Calendar.current.date(byAdding: .month, value: months, to: paymentDate) ?? paymentDate
-        return labelDate(date.ymdString)
-    }
-
-    private func estimatedMonths(balance: Double, payment: Double, apr: Double) -> Int? {
-        var balance = balance
-        guard balance > 0 else { return 0 }
-        let monthlyRate = max(0, apr) / 100 / 12
-        guard payment > balance * monthlyRate else { return nil }
-
-        for month in 1...600 {
-            balance += balance * monthlyRate
-            balance -= payment
-            if balance <= 0 {
-                return month
-            }
-        }
-
-        return nil
-    }
-
-    private var snapshotIssue: DebtSnapshotIssue? {
-        DebtSnapshotValidation.issue(
-            originalPrincipal: bill?.debtDetails?.currentPrincipal,
-            originalAccruedInterest: bill?.debtDetails?.accruedInterest,
-            originalBalanceDate: bill?.debtDetails.flatMap { Date.yyyyMMdd.date(from: $0.balanceDate) },
-            originalAPR: bill?.debtDetails?.interestRateAPR,
-            originalMonthlyPayment: bill?.amount,
-            originalPaymentDate: bill.flatMap { Date.yyyyMMdd.date(from: $0.startDate) },
-            currentPrincipalText: currentPrincipal,
-            accruedInterestText: accruedInterest,
-            balanceDate: balanceDate
-        )
-    }
-
-    private var incompleteSnapshotIssue: DebtSnapshotIssue? {
-        DebtSnapshotValidation.incompleteSnapshotIssue(
-            originalPrincipal: bill?.debtDetails?.currentPrincipal,
-            originalAccruedInterest: bill?.debtDetails?.accruedInterest,
-            originalBalanceDate: bill?.debtDetails.flatMap { Date.yyyyMMdd.date(from: $0.balanceDate) },
-            currentPrincipalText: currentPrincipal,
-            accruedInterestText: accruedInterest,
-            balanceDate: balanceDate
-        )
-    }
-
-    private var snapshotHasChanges: Bool {
-        guard let details = bill?.debtDetails,
-              let originalDate = Date.yyyyMMdd.date(from: details.balanceDate) else {
-            return false
-        }
-
-        let principal = Double(currentPrincipal) ?? details.currentPrincipal
-        let interest = Double(accruedInterest) ?? details.accruedInterest
-        return abs(principal - details.currentPrincipal) >= 0.005 ||
-            abs(interest - details.accruedInterest) >= 0.005 ||
-            balanceDate.ymdString != originalDate.ymdString
-    }
-
-    private func attemptSave() {
-        if let debtValidationError {
-            validationError = debtValidationError
-            return
-        }
-        validationError = nil
-
-        switch snapshotIssue {
-        case .incompleteSnapshot:
-            showIncompleteSnapshotAlert = true
-        case .largeBalanceChange:
-            showLargeBalanceAlert = true
-        case nil:
-            saveAndDismiss()
-        }
-    }
-
-    private func cancel() {
-        attemptExit()
-    }
-
-    private func attemptExit() {
-        switch snapshotIssue {
-        case .incompleteSnapshot:
-            showIncompleteSnapshotAlert = true
-        case .largeBalanceChange:
-            showLargeBalanceAlert = true
-        case nil:
-            dismiss()
-        }
-    }
-
-    private func saveAndDismiss() {
-        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard debtValidationError == nil,
-              let starting = parseAmount(startingBalance),
-              let principal = parseAmount(currentPrincipal),
-              let interest = parseAmount(accruedInterest),
-              let rate = parseAmount(apr),
-              let minimum = parseAmount(minimumPayment),
-              let monthly = parseAmount(monthlyPayment) else {
-            validationError = debtValidationError ?? "Enter valid debt details."
-            return
-        }
-        onSave(
-            trimmedName,
-            starting,
-            principal,
-            interest,
-            balanceDate,
-            rate,
-            minimum,
-            monthly,
-            paymentDate
-        )
-        dismiss()
-    }
-
-    private var debtValidationError: String? {
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return "Enter a debt name."
-        }
-        guard parseAmount(startingBalance) != nil else { return "Enter a valid starting balance." }
-        guard parseAmount(currentPrincipal) != nil else { return "Enter a valid current principal." }
-        guard parseAmount(accruedInterest) != nil else { return "Enter valid accrued interest." }
-        guard parseAmount(apr) != nil else { return "Enter a valid interest rate." }
-        guard parseAmount(minimumPayment) != nil else { return "Enter a valid minimum payment." }
-        guard parseAmount(monthlyPayment) != nil else { return "Enter a valid monthly payment." }
-        return nil
-    }
-
-    private func editorDatePicker(date: Binding<Date>) -> some View {
-        DatePicker("", selection: date, displayedComponents: .date)
-            .labelsHidden()
-            .datePickerStyle(.compact)
-            .font(.system(size: 14))
-            .tint(Color.floatText)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .contentShape(Rectangle())
-            .padding(.horizontal, 12)
-            .frame(height: 40)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.floatBorder, lineWidth: 0.5)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 

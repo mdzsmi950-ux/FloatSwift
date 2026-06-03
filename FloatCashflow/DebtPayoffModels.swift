@@ -1,9 +1,5 @@
 import Foundation
 
-struct DebtPayoffLedger: Codable, Equatable {
-    var debts: [DebtPayoffItem] = []
-}
-
 struct DebtPayoffItem: Codable, Equatable, Identifiable {
     var id: String
     var name: String
