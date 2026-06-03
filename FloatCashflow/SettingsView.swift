@@ -587,7 +587,7 @@ struct SettingsView: View {
             Text("Nothing going out yet.")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Color.floatText)
-            Text("Add bills, cards, debts, subscriptions, transfers, or any payment that pulls money out.")
+            Text("Add bills, cards, debts, transfers, or other outgoing payments.")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(Color.floatTextFaint)
                 .fixedSize(horizontal: false, vertical: true)
